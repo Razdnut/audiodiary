@@ -5,11 +5,15 @@ import { Textarea } from '@/components/ui/textarea';
 import Rating from '@/components/ui/rating';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
+import AudioControls from '@/components/AudioControls';
 
 interface JournalEntry {
   date: string; // YYYY-MM-DD
   content: string;
   rating: number;
+  audioUrl?: string;
+  transcript?: string;
+  summary?: string;
 }
 
 const DailyJournal = () => {
@@ -17,6 +21,9 @@ const DailyJournal = () => {
   const [entries, setEntries] = useState<{ [key: string]: JournalEntry }>({});
   const [currentContent, setCurrentContent] = useState('');
   const [currentRating, setCurrentRating] = useState(0);
+  const [currentAudioUrl, setCurrentAudioUrl] = useState<string | undefined>();
+  const [currentTranscript, setCurrentTranscript] = useState<string | undefined>();
+  const [currentSummary, setCurrentSummary] = useState<string | undefined>();
 
   useEffect(() => {
     try {
@@ -35,6 +42,9 @@ const DailyJournal = () => {
     const entry = entries[dateKey];
     setCurrentContent(entry?.content || '');
     setCurrentRating(entry?.rating || 0);
+    setCurrentAudioUrl(entry?.audioUrl);
+    setCurrentTranscript(entry?.transcript);
+    setCurrentSummary(entry?.summary);
   }, [selectedDate, entries]);
 
   const handleSaveEntry = () => {
@@ -47,6 +57,9 @@ const DailyJournal = () => {
       date: dateKey,
       content: currentContent,
       rating: currentRating,
+      audioUrl: currentAudioUrl,
+      transcript: currentTranscript,
+      summary: currentSummary,
     };
     
     const updatedEntries = { ...entries, [dateKey]: newEntry };
@@ -57,6 +70,12 @@ const DailyJournal = () => {
     } catch (error) {
       console.error("Failed to save journal entry to local storage", error);
     }
+  };
+
+  const handleAudioUpdate = (updates: { audioUrl?: string; transcript?: string; summary?: string }) => {
+    if ('audioUrl' in updates) setCurrentAudioUrl(updates.audioUrl);
+    if ('transcript' in updates) setCurrentTranscript(updates.transcript);
+    if ('summary' in updates) setCurrentSummary(updates.summary);
   };
 
   const daysWithEntries = Object.keys(entries).map(dateStr => {
@@ -84,49 +103,55 @@ const DailyJournal = () => {
           </Card>
         </div>
 
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>
                 Voce del Diario - {selectedDate ? format(selectedDate, 'PPP') : 'Seleziona una data'}
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div>
-                  <label htmlFor="journal-content" className="block text-sm font-medium text-gray-700 mb-2">
-                    Come ti senti oggi?
-                  </label>
-                  <Textarea
-                    id="journal-content"
-                    placeholder="Scrivi qui i tuoi pensieri..."
-                    value={currentContent}
-                    onChange={(e) => setCurrentContent(e.target.value)}
-                    className="min-h-[250px] text-base"
-                    disabled={!selectedDate}
-                  />
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Valuta la tua giornata:</h3>
-                  <Rating
-                    value={currentRating}
-                    onValueChange={setCurrentRating}
-                    max={5}
-                    size="lg"
-                  />
-                </div>
-
-                <Button 
-                  onClick={handleSaveEntry} 
-                  className="w-full text-lg py-6"
+            <CardContent className="space-y-6">
+              <div>
+                <label htmlFor="journal-content" className="block text-sm font-medium text-gray-700 mb-2">
+                  Come ti senti oggi?
+                </label>
+                <Textarea
+                  id="journal-content"
+                  placeholder="Scrivi qui i tuoi pensieri..."
+                  value={currentContent}
+                  onChange={(e) => setCurrentContent(e.target.value)}
+                  className="min-h-[200px] text-base"
                   disabled={!selectedDate}
-                >
-                  Salva Voce
-                </Button>
+                />
+              </div>
+              
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Valuta la tua giornata:</h3>
+                <Rating
+                  value={currentRating}
+                  onValueChange={setCurrentRating}
+                  max={5}
+                  size="lg"
+                />
               </div>
             </CardContent>
           </Card>
+
+          <AudioControls
+            audioUrl={currentAudioUrl}
+            transcript={currentTranscript}
+            summary={currentSummary}
+            onUpdate={handleAudioUpdate}
+            disabled={!selectedDate}
+          />
+
+          <Button 
+            onClick={handleSaveEntry} 
+            className="w-full text-lg py-6"
+            disabled={!selectedDate}
+          >
+            Salva Voce del Diario
+          </Button>
         </div>
       </div>
     </div>
