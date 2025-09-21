@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Settings } from './SettingsDialog';
 import { transcribeAudio, summarizeText } from '@/services/openai';
 import { showError, showSuccess } from '@/utils/toast';
+import { Label } from './ui/label';
 
 interface AudioControlsProps {
   audioUrl: string | undefined;
@@ -110,7 +111,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
   };
 
   return (
-    <Card className="bg-gray-50">
+    <Card>
       <CardHeader>
         <CardTitle className="text-lg">Note Vocali e Analisi</CardTitle>
       </CardHeader>
@@ -135,22 +136,22 @@ const AudioControls: React.FC<AudioControlsProps> = ({
 
         {audioUrl && !isRecording && (
           <div>
-            <p className="text-sm font-medium mb-1 text-gray-600">Registrazione:</p>
-            <audio controls src={audioUrl} className="w-full h-10" />
+            <Label className="text-sm font-medium mb-1 text-muted-foreground">Registrazione:</Label>
+            <audio controls src={audioUrl} className="w-full h-10 mt-1" />
           </div>
         )}
 
         {transcript && (
           <div>
-            <label className="block text-sm font-medium mb-1 text-gray-600">Trascrizione:</label>
-            <Textarea value={transcript} readOnly className="bg-white" rows={4} />
+            <Label className="text-sm font-medium mb-1">Trascrizione:</Label>
+            <Textarea value={transcript} readOnly className="bg-background mt-1" rows={4} />
           </div>
         )}
 
         {summary && (
           <div>
-            <label className="block text-sm font-medium mb-1 text-gray-600">Sintesi Automatica:</label>
-            <Textarea value={summary} readOnly className="bg-white" rows={3} />
+            <Label className="text-sm font-medium mb-1">Sintesi Automatica:</Label>
+            <Textarea value={summary} readOnly className="bg-background mt-1" rows={3} />
           </div>
         )}
       </CardContent>

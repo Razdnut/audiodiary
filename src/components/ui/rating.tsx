@@ -1,4 +1,8 @@
+"use client";
+
 import React from 'react';
+import { Star } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface RatingProps {
   value: number;
@@ -11,28 +15,35 @@ const Rating: React.FC<RatingProps> = ({
   value,
   onValueChange,
   max = 5,
-  size = 'md'
+  size = 'md',
 }) => {
   const sizeClasses = {
-    sm: 'w-4 h-4',
-    md: 'w-5 h-5', 
-    lg: 'w-6 h-6'
+    sm: 'h-5 w-5',
+    md: 'h-6 w-6',
+    lg: 'h-8 w-8',
   };
 
   return (
     <div className="flex items-center gap-1">
-      {Array.from({ length: max }, (_, index) => (
-        <button
-          key={index}
-          onClick={() => onValueChange(index + 1)}
-          className={`${sizeClasses[size]} rounded-full border-2 transition-colors ${
-            index < value 
-              ? 'bg-yellow-400 border-yellow-400' 
-              : 'bg-white border-gray-300'
-          } hover:bg-yellow-300 hover:border-yellow-400`}
-          aria-label={`Rate ${index + 1} out of ${max}`}
-        />
-      ))}
+      {Array.from({ length: max }, (_, index) => {
+        const starValue = index + 1;
+        return (
+          <button
+            key={index}
+            onClick={() => onValueChange(starValue)}
+            className="group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
+            aria-label={`Rate ${starValue} out of ${max}`}
+          >
+            <Star
+              className={cn(
+                sizeClasses[size],
+                'transition-colors text-muted-foreground group-hover:text-yellow-400',
+                starValue <= value ? 'text-yellow-400 fill-yellow-400' : 'fill-muted'
+              )}
+            />
+          </button>
+        );
+      })}
     </div>
   );
 };

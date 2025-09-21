@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import Rating from '@/components/ui/rating';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
+import { it } from 'date-fns/locale';
 import { Settings as SettingsIcon } from 'lucide-react';
 import AudioControls from '@/components/AudioControls';
 import SettingsDialog, { Settings } from '@/components/SettingsDialog';
+import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
 
 interface JournalEntry {
   date: string; // YYYY-MM-DD
@@ -56,7 +59,7 @@ const DailyJournal = () => {
     setCurrentAudioUrl(entry?.audioUrl);
     setCurrentTranscript(entry?.transcript);
     setCurrentSummary(entry?.summary);
-    setCurrentAudioFile(undefined); // Reset audio file on date change
+    setCurrentAudioFile(undefined);
   }, [selectedDate, entries]);
 
   const handleSaveEntry = () => {
@@ -101,82 +104,102 @@ const DailyJournal = () => {
 
   return (
     <>
-      <div className="container mx-auto p-4 md:p-8">
-        <header className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-center flex-grow">Diario Psicologico</h1>
-          <Button variant="ghost" size="icon" onClick={() => setIsSettingsOpen(true)}>
-            <SettingsIcon className="h-6 w-6" />
-          </Button>
-        </header>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-1">
-            <Card>
-              <CardContent className="p-0 flex justify-center">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  className="rounded-md border"
-                  modifiers={{ hasEntry: daysWithEntries }}
-                  modifiersStyles={{ hasEntry: { textDecoration: 'underline', textDecorationColor: '#3b82f6', fontWeight: 'bold' } }}
-                />
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="lg:col-span-2 space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  Voce del Diario - {selectedDate ? format(selectedDate, 'PPP') : 'Seleziona una data'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <label htmlFor="journal-content" className="block text-sm font-medium text-gray-700 mb-2">
-                    Come ti senti oggi?
-                  </label>
-                  <Textarea
-                    id="journal-content"
-                    placeholder="Scrivi qui i tuoi pensieri..."
-                    value={currentContent}
-                    onChange={(e) => setCurrentContent(e.target.value)}
-                    className="min-h-[200px] text-base"
-                    disabled={!selectedDate}
-                  />
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Valuta la tua giornata:</h3>
-                  <Rating
-                    value={currentRating}
-                    onValueChange={setCurrentRating}
-                    max={5}
-                    size="lg"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <AudioControls
-              audioUrl={currentAudioUrl}
-              transcript={currentTranscript}
-              summary={currentSummary}
-              onUpdate={handleAudioUpdate}
-              disabled={!selectedDate}
-              settings={settings}
-              audioFile={currentAudioFile}
-            />
-
-            <Button 
-              onClick={handleSaveEntry} 
-              className="w-full text-lg py-6"
-              disabled={!selectedDate}
-            >
-              Salva Voce del Diario
+      <div className="bg-background text-foreground min-h-screen">
+        <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+          <header className="flex justify-between items-center mb-8 border-b pb-4">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Diario Psicologico</h1>
+              <p className="text-muted-foreground">
+                Le tue riflessioni quotidiane, in un unico posto.
+              </p>
+            </div>
+            <Button variant="outline" size="icon" onClick={() => setIsSettingsOpen(true)}>
+              <SettingsIcon className="h-5 w-5" />
+              <span className="sr-only">Impostazioni</span>
             </Button>
-          </div>
+          </header>
+
+          <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <aside className="lg:col-span-1">
+              <Card>
+                <CardContent className="p-0 flex justify-center">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    className="p-3"
+                    modifiers={{ hasEntry: daysWithEntries }}
+                    modifiersStyles={{
+                      hasEntry: { 
+                        color: 'hsl(var(--primary-foreground))',
+                        backgroundColor: 'hsl(var(--primary))' 
+                      }
+                    }}
+                    locale={it}
+                  />
+                </CardContent>
+              </Card>
+            </aside>
+
+            <section className="lg:col-span-2 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-2xl">
+                    Voce del {selectedDate ? format(selectedDate, 'PPP', { locale: it }) : 'Seleziona una data'}
+                  </CardTitle>
+                  <CardDescription>
+                    Scrivi i tuoi pensieri, registra una nota vocale e valuta la tua giornata.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Label htmlFor="journal-content" className="text-base font-medium">
+                      Come ti senti oggi?
+                    </Label>
+                    <Textarea
+                      id="journal-content"
+                      placeholder="Scrivi qui..."
+                      value={currentContent}
+                      onChange={(e) => setCurrentContent(e.target.value)}
+                      className="min-h-[200px] text-base mt-2"
+                      disabled={!selectedDate}
+                    />
+                  </div>
+                  
+                  <Separator />
+
+                  <div>
+                    <h3 className="text-base font-medium mb-2">Valuta la tua giornata:</h3>
+                    <Rating
+                      value={currentRating}
+                      onValueChange={setCurrentRating}
+                      max={5}
+                      size="lg"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <AudioControls
+                audioUrl={currentAudioUrl}
+                transcript={currentTranscript}
+                summary={currentSummary}
+                onUpdate={handleAudioUpdate}
+                disabled={!selectedDate}
+                settings={settings}
+                audioFile={currentAudioFile}
+              />
+
+              <Button 
+                onClick={handleSaveEntry} 
+                size="lg"
+                className="w-full text-lg"
+                disabled={!selectedDate}
+              >
+                Salva Voce del Diario
+              </Button>
+            </section>
+          </main>
         </div>
       </div>
       <SettingsDialog
