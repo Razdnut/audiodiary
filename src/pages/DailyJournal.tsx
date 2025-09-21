@@ -11,6 +11,7 @@ import AudioControls from '@/components/AudioControls';
 import SettingsDialog, { Settings } from '@/components/SettingsDialog';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 interface JournalEntry {
   date: string; // YYYY-MM-DD
@@ -113,10 +114,13 @@ const DailyJournal = () => {
                 Le tue riflessioni quotidiane, in un unico posto.
               </p>
             </div>
-            <Button variant="outline" size="icon" onClick={() => setIsSettingsOpen(true)}>
-              <SettingsIcon className="h-5 w-5" />
-              <span className="sr-only">Impostazioni</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Button variant="outline" size="icon" onClick={() => setIsSettingsOpen(true)}>
+                <SettingsIcon className="h-5 w-5" />
+                <span className="sr-only">Impostazioni</span>
+              </Button>
+            </div>
           </header>
 
           <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
