@@ -324,13 +324,8 @@ const DailyJournal = () => {
                     selected={selectedDate}
                     onSelect={(date) => { setSelectedDate(date); setShowEntryHighlights(true); }}
                     className="p-3"
-                    modifiers={showEntryHighlights ? { hasEntry: daysWithEntries } : {}}
-                    modifiersStyles={{
-                      hasEntry: { 
-                        color: 'hsl(var(--primary-foreground))',
-                        backgroundColor: 'hsl(var(--primary))' 
-                      }
-                    }}
+                    modifiers={{ hasEntry: daysWithEntries }}
+                    modifiersClassNames={{ hasEntry: 'has-entry' }}
                     locale={lang === 'en' ? enUS : it}
                   />
                 </CardContent>
@@ -479,6 +474,53 @@ const DailyJournal = () => {
                 settings={settings}
                 audioFile={currentAudioFile}
               />
+
+              {/* Recent 30 days summary */}
+              <Card className="border-border/50">
+                <CardHeader>
+                  <CardTitle className="text-lg">{t('recent.title')}</CardTitle>
+                  <CardDescription>{t('recent.description')}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {(() => {
+                    const now = new Date();
+                    const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                    const list = Object.entries(entries)
+                      .flatMap(([dateKey, arr]) => (arr || []).map((e, idx) => ({ ...e, dateKey, idx })))
+                      .map((e) => {
+                        const when = e.createdAt ? new Date(e.createdAt) : new Date(e.date + 'T00:00:00');
+                        return { ...e, when };
+                      })
+                      .filter((e) => e.when >= cutoff)
+                      .sort((a, b) => b.when.getTime() - a.when.getTime());
+                    if (list.length === 0) {
+                      return <div className="text-sm text-muted-foreground">{t('recent.empty')}</div>;
+                    }
+                    return (
+                      <div className="space-y-3 max-h-80 overflow-auto pr-1">
+                        {list.map((e, i) => {
+                          const display = (e.content && e.content.trim().length > 0)
+                            ? e.content
+                            : (e.summary && e.summary.trim().length > 0)
+                              ? e.summary
+                              : (e.transcript || '');
+                          return (
+                            <div key={`${e.dateKey}-${e.idx}-${i}`} className="p-3 rounded-md border bg-card">
+                              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                                <span>{format(new Date(e.dateKey + 'T00:00:00'), 'PPP', { locale: lang === 'en' ? enUS : it })}</span>
+                                {e.createdAt && (
+                                  <span>{format(e.when, 'HH:mm', { locale: lang === 'en' ? enUS : it })}</span>
+                                )}
+                              </div>
+                              <div className="mt-2 whitespace-pre-wrap text-sm leading-relaxed line-clamp-5">{display}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                </CardContent>
+              </Card>
 
               <div className="flex gap-4">
                 <Button 

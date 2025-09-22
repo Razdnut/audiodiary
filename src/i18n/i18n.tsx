@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { it as dfIt, enUS as dfEnUS } from 'date-fns/locale';
 import type { Locale } from 'date-fns';
 
@@ -13,7 +13,7 @@ const translations: Translations = {
     'header.subtitle': 'Le tue riflessioni quotidiane, in un unico posto.',
     'header.export': 'Esporta',
     'header.settings': 'Impostazioni',
-    'header.statsCompact': '{count} voci • ?{avg}',
+    'header.statsCompact': '{count} voci ï¿½ ?{avg}',
 
     'daily.entryFor': 'Voce del {date}',
     'daily.selectDate': 'Seleziona una data',
@@ -82,13 +82,17 @@ const translations: Translations = {
     'ics.content': 'Contenuto',
     'ics.transcript': 'Trascrizione',
     'ics.summary': 'Sintesi',
+
+    'recent.title': 'Riepilogo ultimi 30 giorni',
+    'recent.description': 'Le note create negli ultimi 30 giorni.',
+    'recent.empty': 'Nessuna nota negli ultimi 30 giorni.',
   },
   en: {
     'app.title': 'Psychological Journal',
     'header.subtitle': 'Your daily reflections, in one place.',
     'header.export': 'Export',
     'header.settings': 'Settings',
-    'header.statsCompact': '{count} entries • ?{avg}',
+    'header.statsCompact': '{count} entries ï¿½ ?{avg}',
 
     'daily.entryFor': 'Entry for {date}',
     'daily.selectDate': 'Select a date',
@@ -157,6 +161,10 @@ const translations: Translations = {
     'ics.content': 'Content',
     'ics.transcript': 'Transcript',
     'ics.summary': 'Summary',
+
+    'recent.title': 'Last 30 Days',
+    'recent.description': 'Notes created in the last 30 days.',
+    'recent.empty': 'No notes in the last 30 days.',
   },
 };
 
