@@ -13,7 +13,7 @@ const translations: Translations = {
     'header.subtitle': 'Le tue riflessioni quotidiane, in un unico posto.',
     'header.export': 'Esporta',
     'header.settings': 'Impostazioni',
-    'header.statsCompact': '{count} voci • ⭐{avg}',
+    'header.statsCompact': '{count} voci � ?{avg}',
 
     'daily.entryFor': 'Voce del {date}',
     'daily.selectDate': 'Seleziona una data',
@@ -88,7 +88,7 @@ const translations: Translations = {
     'header.subtitle': 'Your daily reflections, in one place.',
     'header.export': 'Export',
     'header.settings': 'Settings',
-    'header.statsCompact': '{count} entries • ⭐{avg}',
+    'header.statsCompact': '{count} entries � ?{avg}',
 
     'daily.entryFor': 'Entry for {date}',
     'daily.selectDate': 'Select a date',
@@ -209,3 +209,4 @@ export const useI18n = () => {
   if (!ctx) throw new Error('useI18n must be used within I18nProvider');
   return ctx;
 };
+

@@ -46,7 +46,7 @@ const DailyJournal = () => {
   const [currentAudioUrl, setCurrentAudioUrl] = useState<string | undefined>();
   const [currentAudioFile, setCurrentAudioFile] = useState<File | undefined>();
   const [currentTranscript, setCurrentTranscript] = useState<string | undefined>();
-  const [currentSummary, setCurrentSummary] = useState<string | undefined>();
+    const [contentAutoFilled, setContentAutoFilled] = useState(false);
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
@@ -143,6 +143,7 @@ const DailyJournal = () => {
     setCurrentAudioUrl(entry?.audioUrl);
     setCurrentTranscript(entry?.transcript);
     setCurrentSummary(entry?.summary);
+    setContentAutoFilled(false);
     setCurrentAudioFile(undefined);
     if (idx !== selectedEntryIndex) setSelectedEntryIndex(idx);
   }, [selectedDate, entries, selectedEntryIndex]);
@@ -176,7 +177,7 @@ const DailyJournal = () => {
     }
     const updatedEntries = { ...entries, [dateKey]: dayEntries };
     // Reflect fallback in UI first for immediacy
-    if (contentToSave !== currentContent) setCurrentContent(contentToSave);
+    if (contentToSave !== currentContent) { setCurrentContent(contentToSave); setContentAutoFilled(false); }
     setEntries(updatedEntries);
     
     try {
@@ -211,6 +212,7 @@ const DailyJournal = () => {
       setCurrentAudioUrl(undefined);
       setCurrentTranscript(undefined);
       setCurrentSummary(undefined);
+                          setContentAutoFilled(false);
       showSuccess(
         removedCount > 0
           ? `Eliminati audio da ${removedCount} voci. Trascrizioni e sintesi rimosse.`
@@ -251,14 +253,7 @@ const DailyJournal = () => {
     if ('transcript' in updates) {
       setCurrentTranscript(updates.transcript);
     }
-    if ('summary' in updates) setCurrentSummary(updates.summary);
-    // Prefer auto-fill with summary: if content is empty and a summary arrives, show it in the editor
-    if ('summary' in updates) {
-      const newSummary = updates.summary || '';
-      if ((currentContent || '').trim().length === 0 && newSummary.trim().length > 0) {
-        setCurrentContent(newSummary);
-      }
-    }
+    if ('summary' in updates) {\r\n      setCurrentSummary(updates.summary);\r\n      const newSummary = updates.summary || '';\r\n      if ((contentAutoFilled || (currentContent || '').trim().length === 0) && newSummary.trim().length > 0) {\r\n        setCurrentContent(newSummary);\r\n        setContentAutoFilled(true);\r\n      }\r\n    }
     if ('audioFile' in updates) setCurrentAudioFile(updates.audioFile);
   };
 
@@ -392,6 +387,7 @@ const DailyJournal = () => {
                           setCurrentAudioUrl(undefined);
                           setCurrentTranscript(undefined);
                           setCurrentSummary(undefined);
+                          setContentAutoFilled(false);
                           try { localStorage.setItem('journal-entries', JSON.stringify(updatedEntries)); } catch {}
                         }}
                         disabled={!selectedDate}
@@ -423,6 +419,7 @@ const DailyJournal = () => {
                             setCurrentAudioUrl(undefined);
                             setCurrentTranscript(undefined);
                             setCurrentSummary(undefined);
+                          setContentAutoFilled(false);
                           }
                           showSuccess(t('daily.deleteNote'));
                         }}
@@ -436,7 +433,7 @@ const DailyJournal = () => {
                       id="journal-content"
                       placeholder={t('daily.writePlaceholder')}
                       value={currentContent}
-                      onChange={(e) => setCurrentContent(e.target.value)}
+                      onChange={(e) => { setCurrentContent(e.target.value); setContentAutoFilled(false); }}
                       className="min-h-[200px] text-base mt-2 resize-none"
                       disabled={!selectedDate}
                     />
@@ -497,6 +494,7 @@ const DailyJournal = () => {
                     setCurrentAudioUrl(undefined);
                     setCurrentTranscript(undefined);
                     setCurrentSummary(undefined);
+                          setContentAutoFilled(false);
                   }}
                   disabled={!selectedDate}
                 >
@@ -515,7 +513,7 @@ const DailyJournal = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">{t('stats.avgRating')}</span>
-                    <span className="font-semibold">⭐{averageRating}</span>
+                    <span className="font-semibold">?{averageRating}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">{t('stats.recordings')}</span>
@@ -581,3 +579,4 @@ const DailyJournal = () => {
 };
 
 export default DailyJournal;
+
