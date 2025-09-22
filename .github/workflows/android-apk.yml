@@ -32,7 +32,7 @@ jobs:
           pnpm --version
 
       - name: Install deps
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --no-frozen-lockfile --reporter=silent
 
       - name: Build web app
         run: pnpm build
