@@ -28,7 +28,7 @@ jobs:
       - name: Enable corepack
         run: |
           corepack enable
-          corepack prepare pnpm@9 --activate
+          corepack prepare pnpm@10.17.0 --activate
 
       - name: Install deps
         run: pnpm install --no-frozen-lockfile
