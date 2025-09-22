@@ -175,9 +175,9 @@ const DailyJournal = () => {
       setSelectedEntryIndex(dayEntries.length - 1);
     }
     const updatedEntries = { ...entries, [dateKey]: dayEntries };
-    setEntries(updatedEntries);
-    // Reflect fallback in UI text area as well
+    // Reflect fallback in UI first for immediacy
     if (contentToSave !== currentContent) setCurrentContent(contentToSave);
+    setEntries(updatedEntries);
     
     try {
       localStorage.setItem('journal-entries', JSON.stringify(updatedEntries));
