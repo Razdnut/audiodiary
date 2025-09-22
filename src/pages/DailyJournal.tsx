@@ -2,7 +2,6 @@
 
 const DailyJournal = () => {
   return (
-    // ... tutto il JSX ...
   );
 };
 
