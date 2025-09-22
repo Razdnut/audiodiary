@@ -29,12 +29,14 @@ jobs:
 
       - name: Build image
         run: |
-          IMAGE="ghcr.io/${{ github.repository }}"
+          REPO_LC="${GITHUB_REPOSITORY,,}"
+          IMAGE="ghcr.io/${REPO_LC}"
+          echo "Building $IMAGE:${{ steps.vars.outputs.version }}"
           docker build -t "$IMAGE:latest" -t "$IMAGE:${{ steps.vars.outputs.version }}" .
 
       - name: Push image
         run: |
-          IMAGE="ghcr.io/${{ github.repository }}"
+          REPO_LC="${GITHUB_REPOSITORY,,}"
+          IMAGE="ghcr.io/${REPO_LC}"
           docker push "$IMAGE:latest"
           docker push "$IMAGE:${{ steps.vars.outputs.version }}"
-
