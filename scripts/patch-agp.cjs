@@ -2,7 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const AGP = process.env.AGP_VERSION || '8.7.2';
+const AGP = process.env.AGP_VERSION || '8.6.1';
 const roots = [
   'node_modules/@capacitor/android/capacitor/build.gradle',
   'node_modules/@capacitor/filesystem/android/build.gradle',
@@ -21,4 +21,3 @@ for (const rel of roots) {
     console.log(`[patch-agp] OK ${rel}`);
   }
 }
-

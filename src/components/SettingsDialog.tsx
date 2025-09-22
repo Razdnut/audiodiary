@@ -90,7 +90,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, settin
               id="backend-url"
               type="text"
               value={currentSettings.backendUrl || ''}
-              onChange={(e) => setCurrentSettings({ ...currentSettings, backendUrl: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCurrentSettings({ ...currentSettings, backendUrl: e.target.value })}
               className="col-span-3"
               placeholder={t('settings.backendUrl.placeholder')}
             />
@@ -103,7 +103,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, settin
               id="api-key"
               type="password"
               value={currentSettings.apiKey}
-              onChange={(e) => setCurrentSettings({ ...currentSettings, apiKey: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCurrentSettings({ ...currentSettings, apiKey: e.target.value })}
               className="col-span-3"
               placeholder="sk-..."
             />
@@ -167,7 +167,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, settin
                   ? currentSettings.summaryPromptEn
                   : currentSettings.summaryPromptIt) || (lang === 'en' ? defaultSummaryPromptEn : defaultSummaryPromptIt)
               }
-              onChange={(e) =>
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                 setCurrentSettings((prev) =>
                   lang === 'en'
                     ? { ...prev, summaryPromptEn: e.target.value }

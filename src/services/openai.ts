@@ -16,7 +16,7 @@ export const transcribeAudio = async (settings: Settings, audioFile: File, lang:
     form.append('model', settings.transcriptionModel);
     const res = await fetch(url, { method: 'POST', body: form });
     if (!res.ok) throw new Error(M[lang].backendErr);
-    const data = await res.json();
+    const data = await res.json() as { text?: string; transcript?: string };
     return data.text || data.transcript || '';
   }
 
@@ -45,7 +45,7 @@ export const summarizeText = async (
       body: JSON.stringify({ model: settings.summaryModel, prompt, text, lang }),
     });
     if (!res.ok) throw new Error(lang === 'en' ? 'Summarize backend error' : 'Errore del backend di sintesi');
-    const data = await res.json();
+    const data = await res.json() as { text?: string; summary?: string };
     return data.text || data.summary || '';
   }
 

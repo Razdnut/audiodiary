@@ -1,11 +1,11 @@
-﻿{
+{
     "name":  "vite_react_shadcn_ts",
     "private":  true,
     "version":  "0.0.0",
     "type":  "module",
     "license":  "MIT",
     "packageManager":  "pnpm@10.17.0",
-    "scripts": {\n    "postinstall": "node scripts/patch-agp.cjs",
+    "scripts": {"postinstall": "node scripts/patch-agp.cjs",
                     "dev":  "vite",
                     "build":  "vite build",
                     "build:dev":  "vite build --mode development",
@@ -102,4 +102,3 @@
                                   }
                   }
 }
-

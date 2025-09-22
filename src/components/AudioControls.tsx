@@ -31,6 +31,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
   disabled,
   settings,
   audioFile,
+  onCopySummaryToNote,
 }) => {
   const { t, lang } = useI18n();
   const [isRecording, setIsRecording] = useState(false);
@@ -198,7 +199,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
           ref={fileInputRef}
           type="file"
           accept="audio/*"
-          capture="microphone"
+          capture="user"
           className="hidden"
           onChange={handleFileSelected}
         />

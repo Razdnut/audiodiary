@@ -46,7 +46,8 @@ const DailyJournal = () => {
   const [currentAudioUrl, setCurrentAudioUrl] = useState<string | undefined>();
   const [currentAudioFile, setCurrentAudioFile] = useState<File | undefined>();
   const [currentTranscript, setCurrentTranscript] = useState<string | undefined>();
-    const [contentAutoFilled, setContentAutoFilled] = useState(false);
+  const [currentSummary, setCurrentSummary] = useState<string | undefined>();
+  const [contentAutoFilled, setContentAutoFilled] = useState(false);
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
@@ -435,7 +436,7 @@ const DailyJournal = () => {
                       id="journal-content"
                       placeholder={t('daily.writePlaceholder')}
                       value={currentContent}
-                      onChange={(e) => { setCurrentContent(e.target.value); setContentAutoFilled(false); }}
+                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => { setCurrentContent(e.target.value); setContentAutoFilled(false); }}
                       className="min-h-[200px] text-base mt-2 resize-none"
                       disabled={!selectedDate}
                     />
@@ -657,4 +658,3 @@ const DailyJournal = () => {
 };
 
 export default DailyJournal;
-

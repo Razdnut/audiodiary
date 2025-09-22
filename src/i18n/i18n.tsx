@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { it as dfIt, enUS as dfEnUS } from 'date-fns/locale';
 import type { Locale } from 'date-fns';
 
@@ -13,7 +13,7 @@ const translations: Translations = {
     'header.subtitle': 'Le tue riflessioni quotidiane, in un unico posto.',
     'header.export': 'Esporta',
     'header.settings': 'Impostazioni',
-    'header.statsCompact': '{count} voci � ?{avg}',
+    'header.statsCompact': '{count} voci ? ?{avg}',
 
     'daily.entryFor': 'Voce del {date}',
     'daily.selectDate': 'Seleziona una data',
@@ -21,7 +21,7 @@ const translations: Translations = {
     'daily.selectNote': 'Seleziona una nota',
     'daily.newNote': 'Nuova nota',
     'daily.deleteNote': 'Elimina nota',
-    'daily.deleteNote.confirm': 'Eliminare definitivamente questa nota? L\'eventuale audio sarà rimosso.',
+    'daily.deleteNote.confirm': 'Eliminare definitivamente questa nota? L\'eventuale audio sar� rimosso.',
     'daily.noteN': 'Nota {n}',
     'daily.writePlaceholder': 'Scrivi qui i tuoi pensieri, emozioni e riflessioni...',
     'daily.rateDay': 'Valuta la tua giornata:',
@@ -56,7 +56,7 @@ const translations: Translations = {
     'audio.summarized': 'Sintesi completata!',
 
     'settings.title': 'Impostazioni',
-    'settings.description': 'Configura la tua chiave API di OpenAI e i modelli da utilizzare. La tua chiave API è salvata solo nel tuo browser.',
+    'settings.description': 'Configura la tua chiave API di OpenAI e i modelli da utilizzare. La tua chiave API � salvata solo nel tuo browser.',
     'settings.apiKey': 'API Key',
     'settings.backendUrl': 'URL Backend',
     'settings.backendUrl.placeholder': 'https://tuo-api.esempio.com',
@@ -66,7 +66,7 @@ const translations: Translations = {
     'settings.save': 'Salva Modifiche',
     'settings.lang': 'Lingua',
     'settings.deleteAllAudio': 'Elimina tutti gli audio salvati',
-    'settings.deleteAllAudio.confirm': 'Sei sicuro di voler eliminare TUTTI i file audio, trascrizioni e sintesi salvate? Questa azione non può essere annullata.',
+    'settings.deleteAllAudio.confirm': 'Sei sicuro di voler eliminare TUTTI i file audio, trascrizioni e sintesi salvate? Questa azione non pu� essere annullata.',
 
     'export.title': 'Esporta Dati',
     'export.description': 'Scegli il formato per esportare le tue voci del diario.',
@@ -93,7 +93,7 @@ const translations: Translations = {
     'header.subtitle': 'Your daily reflections, in one place.',
     'header.export': 'Export',
     'header.settings': 'Settings',
-    'header.statsCompact': '{count} entries � ?{avg}',
+    'header.statsCompact': '{count} entries ? ?{avg}',
 
     'daily.entryFor': 'Entry for {date}',
     'daily.selectDate': 'Select a date',
