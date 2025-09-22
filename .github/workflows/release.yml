@@ -1,21 +1,45 @@
-name: Android APK (Capacitor)
+name: Release (Docker + Android APK)
 
 on:
-  workflow_dispatch:
   push:
-    branches: [ main ]
     tags:
       - 'v*'
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
-  build-apk:
+  docker:
     runs-on: ubuntu-latest
-    env:
-      CI: true
-      NO_UPDATE_NOTIFIER: '1'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Compute version and image
+        id: vars
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          REPO_LC="${GITHUB_REPOSITORY,,}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "image=ghcr.io/${REPO_LC}" >> $GITHUB_OUTPUT
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build image
+        run: |
+          docker build -t "${{ steps.vars.outputs.image }}:latest" -t "${{ steps.vars.outputs.image }}:${{ steps.vars.outputs.version }}" .
+
+      - name: Push image
+        run: |
+          docker push "${{ steps.vars.outputs.image }}:latest"
+          docker push "${{ steps.vars.outputs.image }}:${{ steps.vars.outputs.version }}"
+
+  android-apk:
+    runs-on: ubuntu-latest
+    needs: docker
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,14 +50,20 @@ jobs:
           node-version: 18
           cache: 'pnpm'
 
-      - name: Enable corepack
+      - name: Enable pnpm
         run: |
           corepack enable
           corepack use pnpm@10.17.0
           pnpm --version
+        env:
+          CI: true
+          NO_UPDATE_NOTIFIER: '1'
 
-      - name: Install deps
+      - name: Install dependencies
         run: pnpm install --no-frozen-lockfile --reporter=silent
+        env:
+          CI: true
+          NO_UPDATE_NOTIFIER: '1'
 
       - name: Build web app
         run: pnpm build
@@ -56,7 +86,7 @@ jobs:
       - name: Build Debug APK
         run: |
           cd android
-          ./gradlew assembleDebug --stacktrace --no-daemon
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -65,9 +95,8 @@ jobs:
           path: android/app/build/outputs/apk/debug/app-debug.apk
 
       - name: Attach APK to GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: android/app/build/outputs/apk/debug/app-debug.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
