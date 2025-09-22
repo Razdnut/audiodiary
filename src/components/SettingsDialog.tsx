@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useI18n } from '@/i18n/i18n';
 
 export interface Settings {
   apiKey: string;
@@ -33,11 +34,14 @@ interface SettingsDialogProps {
   onClose: () => void;
   settings: Settings;
   onSave: (newSettings: Settings) => void;
+  onDeleteAllAudio?: () => void;
 }
 
-const defaultSummaryPrompt = 'Sei un assistente che riassume in modo conciso e perspicace le voci di un diario psicologico. Estrai i temi principali, le emozioni e le riflessioni chiave in poche frasi.';
+const defaultSummaryPromptIt = 'Sei un assistente che riassume in modo conciso e perspicace le voci di un diario psicologico. Estrai i temi principali, le emozioni e le riflessioni chiave in poche frasi.';
+const defaultSummaryPromptEn = 'You are an assistant that concisely and insightfully summarizes entries from a psychological journal. Extract the main themes, emotions and key reflections in a few sentences.';
 
-const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, settings, onSave }) => {
+const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, settings, onSave, onDeleteAllAudio }) => {
+  const { t, lang, setLang } = useI18n();
   const [currentSettings, setCurrentSettings] = useState<Settings>(settings);
 
   useEffect(() => {
@@ -53,15 +57,15 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, settin
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Impostazioni</DialogTitle>
+          <DialogTitle>{t('settings.title')}</DialogTitle>
           <DialogDescription>
-            Configura la tua chiave API di OpenAI e i modelli da utilizzare. La tua chiave API è salvata solo nel tuo browser.
+            {t('settings.description')}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="api-key" className="text-right">
-              API Key
+              {t('settings.apiKey')}
             </Label>
             <Input
               id="api-key"
@@ -74,7 +78,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, settin
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="transcription-model" className="text-right">
-              Trascrizione
+              {t('settings.transcription')}
             </Label>
             <Select
               value={currentSettings.transcriptionModel}
@@ -90,7 +94,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, settin
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="summary-model" className="text-right">
-              Sintesi
+              {t('settings.summary')}
             </Label>
             <Select
               value={currentSettings.summaryModel}
@@ -106,22 +110,50 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, settin
               </SelectContent>
             </Select>
           </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="language" className="text-right">
+              {t('settings.lang')}
+            </Label>
+            <Select value={lang} onValueChange={(v) => setLang(v as any)}>
+              <SelectTrigger className="col-span-3">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="it">Italiano</SelectItem>
+                <SelectItem value="en">English</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="grid grid-cols-4 items-start gap-4">
             <Label htmlFor="summary-prompt" className="text-right pt-2">
-              Prompt di Sintesi
+              {t('settings.systemPrompt')}
             </Label>
             <Textarea
               id="summary-prompt"
-              value={currentSettings.summaryPrompt || defaultSummaryPrompt}
+              value={currentSettings.summaryPrompt || (lang === 'en' ? defaultSummaryPromptEn : defaultSummaryPromptIt)}
               onChange={(e) => setCurrentSettings({ ...currentSettings, summaryPrompt: e.target.value })}
               className="col-span-3"
               rows={4}
-              placeholder={defaultSummaryPrompt}
+              placeholder={lang === 'en' ? defaultSummaryPromptEn : defaultSummaryPromptIt}
             />
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={handleSave}>Salva Modifiche</Button>
+          <div className="flex w-full items-center justify-between gap-2">
+            <Button onClick={handleSave}>{t('settings.save')}</Button>
+            {onDeleteAllAudio && (
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => {
+                  const confirmed = window.confirm(t('settings.deleteAllAudio.confirm'));
+                  if (confirmed) onDeleteAllAudio();
+                }}
+              >
+                {t('settings.deleteAllAudio')}
+              </Button>
+            )}
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

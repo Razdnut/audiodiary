@@ -55,5 +55,16 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Safe areas for devices with cutouts (Android/iOS) */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Ensure env() does not produce negative or invalid values */
+  @supports (padding-top: max(0px)) {
+    body {
+      padding-top: max(env(safe-area-inset-top), 0px);
+      padding-bottom: max(env(safe-area-inset-bottom), 0px);
+    }
   }
 }

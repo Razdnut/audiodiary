@@ -13,21 +13,22 @@ import { Button } from '@/components/ui/button';
 import { Download, Calendar, FileText } from 'lucide-react';
 import { exportToJson, exportToIcs, downloadFile, JournalEntryForExport } from '@/utils/export-utils';
 import { format } from 'date-fns';
+import { useI18n } from '@/i18n/i18n';
 
 interface ExportDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  entries: { [key: string]: JournalEntryForExport };
+  entries: JournalEntryForExport[];
 }
 
 const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, entries }) => {
   const [isExporting, setIsExporting] = useState(false);
+  const { t, lang } = useI18n();
 
   const handleExportJson = () => {
     setIsExporting(true);
     try {
-      const entriesArray = Object.values(entries);
-      const jsonData = exportToJson(entriesArray);
+      const jsonData = exportToJson(entries);
       const filename = `diario-psicologico-${format(new Date(), 'yyyy-MM-dd')}.json`;
       downloadFile(jsonData, filename, 'application/json');
     } catch (error) {
@@ -41,9 +42,8 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, entries })
   const handleExportIcs = async () => {
     setIsExporting(true);
     try {
-      const entriesArray = Object.values(entries);
-      const icsData = await exportToIcs(entriesArray);
-      const filename = `diario-psicologico-${format(new Date(), 'yyyy-MM-dd')}.ics`;
+      const icsData = await exportToIcs(entries, lang);
+      const filename = `${lang === 'en' ? 'psychological-journal' : 'diario-psicologico'}-${format(new Date(), 'yyyy-MM-dd')}.ics`;
       downloadFile(icsData, filename, 'text/calendar');
     } catch (error) {
       console.error('Errore durante l\'esportazione ICS:', error);
@@ -57,9 +57,9 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, entries })
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Esporta Dati</DialogTitle>
+          <DialogTitle>{t('export.title')}</DialogTitle>
           <DialogDescription>
-            Scegli il formato per esportare le tue voci del diario.
+            {t('export.description')}
           </DialogDescription>
         </DialogHeader>
         
@@ -72,10 +72,10 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, entries })
               className="justify-start"
             >
               <FileText className="mr-2 h-4 w-4" />
-              Esporta in JSON
+              {t('export.json')}
             </Button>
             <p className="text-sm text-muted-foreground">
-              Formato universale per backup e analisi dati.
+              {t('export.json.desc')}
             </p>
           </div>
 
@@ -87,18 +87,16 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, entries })
               className="justify-start"
             >
               <Calendar className="mr-2 h-4 w-4" />
-              Esporta in Calendar (ICS)
+              {t('export.ics')}
             </Button>
             <p className="text-sm text-muted-foreground">
-              Importa le tue voci nel calendario preferito.
+              {t('export.ics.desc')}
             </p>
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Annulla
-          </Button>
+          <Button variant="outline" onClick={onClose}>{t('export.cancel')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
