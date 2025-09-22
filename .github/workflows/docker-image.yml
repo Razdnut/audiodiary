@@ -24,18 +24,21 @@ jobs:
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
+      - name: Set image name (lowercase)
+        run: |
+          REPO_LC="${GITHUB_REPOSITORY,,}"
+          echo "IMAGE=ghcr.io/${REPO_LC}" >> $GITHUB_ENV
+
       - name: Log in to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Build image
         run: |
-          IMAGE="ghcr.io/${{ toLower(github.repository) }}"
           echo "Building $IMAGE:${{ steps.vars.outputs.version }}"
           docker build -t "$IMAGE:latest" -t "$IMAGE:${{ steps.vars.outputs.version }}" .
 
       - name: Push image
         run: |
-          IMAGE="ghcr.io/${{ toLower(github.repository) }}"
           docker push "$IMAGE:latest"
           docker push "$IMAGE:${{ steps.vars.outputs.version }}"
 
