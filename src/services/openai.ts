@@ -4,16 +4,8 @@ import type { Lang } from '@/i18n/i18n';
 
 export const transcribeAudio = async (settings: Settings, audioFile: File, lang: Lang = 'it'): Promise<string> => {
   const M = {
-    it: {
-      backendErr: 'Errore del backend di trascrizione',
-      needBackend: 'Per motivi di sicurezza, configura un Backend URL nelle impostazioni per usare la trascrizione.',
-      needKey: 'La chiave API di OpenAI non è impostata.',
-    },
-    en: {
-      backendErr: 'Transcription backend error',
-      needBackend: 'For security reasons, set a Backend URL in settings to use transcription.',
-      needKey: 'OpenAI API key is not set.',
-    },
+    it: { backendErr: 'Errore del backend di trascrizione', needKey: 'La chiave API di OpenAI non è impostata.' },
+    en: { backendErr: 'Transcription backend error', needKey: 'OpenAI API key is not set.' },
   } as const;
 
   // Prefer backend if configured
@@ -28,7 +20,7 @@ export const transcribeAudio = async (settings: Settings, audioFile: File, lang:
     return data.text || data.transcript || '';
   }
 
-  if (!settings.allowClientOpenAI) throw new Error(M[lang].needBackend);
+  // Fallback to client OpenAI using API key
   if (!settings.apiKey) throw new Error(M[lang].needKey);
 
   const openai = new OpenAI({ apiKey: settings.apiKey, dangerouslyAllowBrowser: true });
@@ -57,7 +49,7 @@ export const summarizeText = async (
     return data.text || data.summary || '';
   }
 
-  if (!settings.allowClientOpenAI) throw new Error(lang === 'en' ? 'For security reasons, set a Backend URL in settings to use summarization.' : 'Per motivi di sicurezza, configura un Backend URL nelle impostazioni per usare la sintesi.');
+  // Fallback to client OpenAI using API key
   if (!settings.apiKey) throw new Error(lang === 'en' ? 'OpenAI API key is not set.' : 'La chiave API di OpenAI non è impostata.');
 
   const openai = new OpenAI({ apiKey: settings.apiKey, dangerouslyAllowBrowser: true });
@@ -70,4 +62,3 @@ export const summarizeText = async (
   });
   return response.choices[0]?.message?.content || (lang === 'en' ? 'No summary generated.' : 'Nessuna sintesi generata.');
 };
-
