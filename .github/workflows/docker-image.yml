@@ -6,7 +6,7 @@ on:
       - 'v*'
 
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 jobs:
@@ -38,3 +38,46 @@ jobs:
           IMAGE="ghcr.io/${{ toLower(github.repository) }}"
           docker push "$IMAGE:latest"
           docker push "$IMAGE:${{ steps.vars.outputs.version }}"
+
+      - name: Prepare release notes
+        run: |
+          cat > release_notes.md << 'EOF'
+          # Psychological Journal v${{ steps.vars.outputs.version }}
+
+          A modern, privacy‑friendly journaling web app. This release publishes the first stable Docker image and includes a large set of features and polish.
+
+          ## Highlights
+          - Internationalization (i18n): English and Italian, with a language switcher. Dates are localized.
+          - Multiple notes per day: add, select and delete notes per selected date.
+          - Audio notes: record in browser, transcribe with Whisper, and summarize with GPT.
+          - Customizable System Prompt: per‑language prompts (IT/EN); summaries use the active language.
+          - Export: JSON and ICS (calendar) export; multiple events and correct typings.
+          - Audio cleanup: delete audio per note and "Delete all saved audio" from Settings.
+          - Calendar UX: only today is highlighted on first load; entry highlights appear after first selection.
+          - Statistics moved to the bottom; button to reset all ratings (stars) to zero.
+          - Mobile polish: safe‑area insets and responsive header so controls fit on small screens.
+          - Cleanup: removed Dyad references.
+          - Dockerization: multi‑stage Dockerfile, Compose file, GHCR publishing via CI.
+
+          ## Breaking/Compatibility Notes
+          - Storage change: entries per day are now arrays (multiple notes). Existing single entries are migrated on load.
+          - Settings change: added language‑specific prompts (`summaryPromptIt`/`summaryPromptEn`). Legacy `summaryPrompt` is kept in sync for compatibility.
+
+          ## Docker
+          - Image: `ghcr.io/${{ toLower(github.repository) }}:${{ steps.vars.outputs.version }}` (also `:latest`).
+          - Run: `docker run --rm -p 8080:80 ghcr.io/${{ toLower(github.repository) }}:${{ steps.vars.outputs.version }}` then open http://localhost:8080.
+          - Compose: `docker compose up --build` (maps 8080 → 80).
+
+          ## Credits
+          - Built with React, TypeScript, Vite, Tailwind, shadcn/ui, date‑fns, and ics.
+          EOF
+
+      - name: Create/Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.vars.outputs.tag }}
+          name: Psychological Journal v${{ steps.vars.outputs.version }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
