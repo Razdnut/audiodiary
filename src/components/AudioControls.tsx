@@ -20,6 +20,7 @@ interface AudioControlsProps {
   disabled: boolean;
   settings: Settings;
   audioFile: File | undefined;
+  onCopySummaryToNote?: () => void;
 }
 
 const AudioControls: React.FC<AudioControlsProps> = ({
@@ -232,6 +233,15 @@ const AudioControls: React.FC<AudioControlsProps> = ({
                 title={t('audio.delete')}
               >
                 <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="mt-2">
+              <Button
+                type="button"
+                onClick={() => onCopySummaryToNote && onCopySummaryToNote()}
+                disabled={disabled || !summary}
+              >
+                {t('daily.copySummaryToNote')}
               </Button>
             </div>
           </div>

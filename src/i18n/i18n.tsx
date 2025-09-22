@@ -26,8 +26,9 @@ const translations: Translations = {
     'daily.writePlaceholder': 'Scrivi qui i tuoi pensieri, emozioni e riflessioni...',
     'daily.rateDay': 'Valuta la tua giornata:',
     'daily.resetRating': 'Azzera voto',
-    'daily.saveEntry': 'Salva Voce',
+    'daily.saveNote': 'Salva Nota',
     'daily.clear': 'Pulisci',
+    'daily.copySummaryToNote': 'Salva in Nota',
 
     'stats.title': 'Statistiche',
     'stats.totalEntries': 'Voci totali:',
@@ -105,8 +106,9 @@ const translations: Translations = {
     'daily.writePlaceholder': 'Write your thoughts, emotions and reflections here...',
     'daily.rateDay': 'Rate your day:',
     'daily.resetRating': 'Reset rating',
-    'daily.saveEntry': 'Save Entry',
+    'daily.saveNote': 'Save Note',
     'daily.clear': 'Clear',
+    'daily.copySummaryToNote': 'Save to Note',
 
     'stats.title': 'Statistics',
     'stats.totalEntries': 'Total entries:',

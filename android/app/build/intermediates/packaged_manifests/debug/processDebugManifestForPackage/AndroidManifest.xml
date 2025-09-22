@@ -11,6 +11,10 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <!-- Declare that the app can use a microphone (not strictly required, but clarifies capability) -->
+    <uses-feature
+        android:name="android.hardware.microphone"
+        android:required="false" />
     <!-- External storage (backward compatibility) -->
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"

@@ -438,7 +438,34 @@ const DailyJournal = () => {
                       onChange={(e) => { setCurrentContent(e.target.value); setContentAutoFilled(false); }}
                       className="min-h-[200px] text-base mt-2 resize-none"
                       disabled={!selectedDate}
-                    />
+                    />                    <div className=\"mt-3 flex gap-3\">
+                      <Button 
+                        onClick={handleSaveEntry} 
+                        size=\"lg\"
+                        className=\"flex-1 text-lg\"
+                        disabled={!selectedDate}
+                      >
+                        {t('daily.saveNote')}
+                      </Button>
+                      <Button 
+                        variant=\"outline\"
+                        size=\"lg\"
+                        onClick={() => {
+                          if (currentAudioUrl && currentAudioUrl.startsWith('blob:')) {
+                            try { URL.revokeObjectURL(currentAudioUrl); } catch {}
+                          }
+                          setCurrentContent('');
+                          setCurrentRating(0);
+                          setCurrentAudioUrl(undefined);
+                          setCurrentTranscript(undefined);
+                          setCurrentSummary(undefined);
+                          setContentAutoFilled(false);
+                        }}
+                        disabled={!selectedDate}
+                      >
+                        {t('daily.clear')}
+                      </Button>
+                    </div>
                   </div>
                   
                   <Separator />
@@ -473,7 +500,7 @@ const DailyJournal = () => {
                 disabled={!selectedDate}
                 settings={settings}
                 audioFile={currentAudioFile}
-              />
+                onCopySummaryToNote={() => { const s = (currentSummary || '').trim(); if (!s) return; setCurrentContent(s); setContentAutoFilled(true); }}\r\n              />
 
               {/* Recent 30 days summary */}
               <Card className="border-border/50">
