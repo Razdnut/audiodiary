@@ -115,6 +115,23 @@ const DailyJournal = () => {
     }
   }, []);
 
+  // Keep legacy summaryPrompt synchronized with the current language
+  useEffect(() => {
+    const defaultIt =
+      'Sei un assistente che riassume in modo conciso e perspicace le voci di un diario psicologico. Estrai i temi principali, le emozioni e le riflessioni chiave in poche frasi.';
+    const defaultEn =
+      'You are an assistant that concisely and insightfully summarizes entries from a psychological journal. Extract the main themes, emotions and key reflections in a few sentences.';
+    const target =
+      lang === 'en'
+        ? (settings.summaryPromptEn || defaultEn)
+        : (settings.summaryPromptIt || defaultIt);
+    if (settings.summaryPrompt !== target) {
+      const synced = { ...settings, summaryPrompt: target };
+      setSettings(synced);
+      try { localStorage.setItem('journal-settings', JSON.stringify(synced)); } catch {}
+    }
+  }, [lang, settings.summaryPromptEn, settings.summaryPromptIt]);
+
   useEffect(() => {
     if (!selectedDate) return;
     const dateKey = format(selectedDate, 'yyyy-MM-dd');
