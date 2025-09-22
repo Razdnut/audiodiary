@@ -23,8 +23,8 @@ export const exportToIcs = async (entries: JournalEntryForExport[]): Promise<str
       description: `Contenuto: ${entry.content}\n\nTrascrizione: ${entry.transcript || 'Nessuna'}\n\nSintesi: ${entry.summary || 'Nessuna'}`,
       start: [year, month, day, 18, 0] as [number, number, number, number, number],
       end: [year, month, day, 18, 30] as [number, number, number, number, number],
-      startInputType: 'local',
-      endInputType: 'local',
+      startInputType: 'local' as const,
+      endInputType: 'local' as const,
       calName: 'Diario Psicologico',
       uid: `diario-${entry.date}-${index}`,
     };
