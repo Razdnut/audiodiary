@@ -20,18 +20,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: 'pnpm'
 
-      - name: Install corepack and enable pnpm
-        run: |
-          npm install -g corepack
-          corepack enable
-          corepack prepare pnpm@10.17.0 --activate
-          echo "pnpm path: $(corepack which pnpm)"
-          export PATH="$(dirname $(corepack which pnpm)):$PATH"
-          pnpm --version
-        env:
-          CI: true
-          NO_UPDATE_NOTIFIER: '1'
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Check pnpm version
+        run: pnpm --version
 
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile --reporter=silent
