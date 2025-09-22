@@ -105,7 +105,7 @@ const DailyJournal = () => {
 
   return (
     <>
-      <div className="bg-background text-foreground min-h-screen">
+      <div className="min-h-screen">
         <div className="container mx-auto p-4 sm:p-6 lg:p-8">
           <header className="flex justify-between items-center mb-8 border-b pb-4">
             <div>
