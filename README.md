@@ -76,6 +76,33 @@ pnpm build
 pnpm preview
 ```
 
+## Docker
+
+Two options are provided: run the published image from GitHub Container Registry (GHCR) or build locally.
+
+- Pull and run from GHCR (version 1.0.0):
+
+```bash
+docker run --rm -p 8080:80 ghcr.io/razdnut/audiodiary:1.0.0
+# Then open http://localhost:8080
+```
+
+- Build and run locally:
+
+```bash
+docker build -t audiodiary:local .
+docker run --rm -p 8080:80 audiodiary:local
+```
+
+## Docker Compose
+
+Use the included compose file to build and run:
+
+```bash
+docker compose up --build
+# Open http://localhost:8080
+```
+
 ## OpenAI Setup (Optional)
 
 All AI functionality runs in the browser. Open Settings and paste your OpenAI API key. You can choose:

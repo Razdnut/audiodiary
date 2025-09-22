@@ -1,0 +1,40 @@
+name: Build and publish Docker image
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract version
+        id: vars
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build image
+        run: |
+          IMAGE="ghcr.io/${{ github.repository }}"
+          docker build -t "$IMAGE:latest" -t "$IMAGE:${{ steps.vars.outputs.version }}" .
+
+      - name: Push image
+        run: |
+          IMAGE="ghcr.io/${{ github.repository }}"
+          docker push "$IMAGE:latest"
+          docker push "$IMAGE:${{ steps.vars.outputs.version }}"
+
