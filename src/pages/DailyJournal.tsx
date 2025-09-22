@@ -6,15 +6,17 @@ import Rating from '@/components/ui/rating';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { Settings as SettingsIcon } from 'lucide-react';
+import { Settings as SettingsIcon, Download, BarChart3 } from 'lucide-react';
 import AudioControls from '@/components/AudioControls';
 import SettingsDialog, { Settings } from '@/components/SettingsDialog';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { ThemeToggle } from '@/components/theme-toggle';
+import ExportDialog from '@/components/ExportDialog';
+import { JournalEntryForExport } from '@/utils/export-utils';
 
 interface JournalEntry {
-  date: string; // YYYY-MM-DD
+  date: string;
   content: string;
   rating: number;
   audioUrl?: string;
@@ -33,6 +35,7 @@ const DailyJournal = () => {
   const [currentSummary, setCurrentSummary] = useState<string | undefined>();
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
   const [settings, setSettings] = useState<Settings>({
     apiKey: '',
     transcriptionModel: 'whisper-1',
@@ -102,6 +105,10 @@ const DailyJournal = () => {
   };
 
   const daysWithEntries = Object.keys(entries).map(dateStr => new Date(dateStr + 'T00:00:00'));
+  const totalEntries = Object.keys(entries).length;
+  const averageRating = totalEntries > 0 
+    ? (Object.values(entries).reduce((sum, entry) => sum + entry.rating, 0) / totalEntries).toFixed(1)
+    : '0.0';
 
   return (
     <>
@@ -109,13 +116,25 @@ const DailyJournal = () => {
         <div className="container mx-auto p-4 sm:p-6 lg:p-8">
           <header className="flex justify-between items-center mb-8 border-b pb-4">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Diario Psicologico</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                Diario Psicologico
+              </h1>
+              <p className="text-muted-foreground mt-1">
                 Le tue riflessioni quotidiane, in un unico posto.
               </p>
             </div>
             <div className="flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-2 bg-muted/50 px-3 py-1 rounded-lg">
+                <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  {totalEntries} voci • ⭐{averageRating}
+                </span>
+              </div>
               <ThemeToggle />
+              <Button variant="outline" size="icon" onClick={() => setIsExportOpen(true)}>
+                <Download className="h-5 w-5" />
+                <span className="sr-only">Esporta</span>
+              </Button>
               <Button variant="outline" size="icon" onClick={() => setIsSettingsOpen(true)}>
                 <SettingsIcon className="h-5 w-5" />
                 <span className="sr-only">Impostazioni</span>
@@ -124,8 +143,8 @@ const DailyJournal = () => {
           </header>
 
           <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <aside className="lg:col-span-1">
-              <Card>
+            <aside className="lg:col-span-1 space-y-6">
+              <Card className="border-border/50">
                 <CardContent className="p-0 flex justify-center">
                   <Calendar
                     mode="single"
@@ -143,10 +162,32 @@ const DailyJournal = () => {
                   />
                 </CardContent>
               </Card>
+
+              <Card className="border-border/50">
+                <CardHeader>
+                  <CardTitle className="text-lg">Statistiche</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Voci totali:</span>
+                    <span className="font-semibold">{totalEntries}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Valutazione media:</span>
+                    <span className="font-semibold">⭐{averageRating}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Audio registrati:</span>
+                    <span className="font-semibold">
+                      {Object.values(entries).filter(e => e.audioUrl).length}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
             </aside>
 
             <section className="lg:col-span-2 space-y-6">
-              <Card>
+              <Card className="border-border/50">
                 <CardHeader>
                   <CardTitle className="text-2xl">
                     Voce del {selectedDate ? format(selectedDate, 'PPP', { locale: it }) : 'Seleziona una data'}
@@ -162,10 +203,10 @@ const DailyJournal = () => {
                     </Label>
                     <Textarea
                       id="journal-content"
-                      placeholder="Scrivi qui..."
+                      placeholder="Scrivi qui i tuoi pensieri, emozioni e riflessioni..."
                       value={currentContent}
                       onChange={(e) => setCurrentContent(e.target.value)}
-                      className="min-h-[200px] text-base mt-2"
+                      className="min-h-[200px] text-base mt-2 resize-none"
                       disabled={!selectedDate}
                     />
                   </div>
@@ -194,23 +235,46 @@ const DailyJournal = () => {
                 audioFile={currentAudioFile}
               />
 
-              <Button 
-                onClick={handleSaveEntry} 
-                size="lg"
-                className="w-full text-lg"
-                disabled={!selectedDate}
-              >
-                Salva Voce del Diario
-              </Button>
+              <div className="flex gap-4">
+                <Button 
+                  onClick={handleSaveEntry} 
+                  size="lg"
+                  className="flex-1 text-lg"
+                  disabled={!selectedDate}
+                >
+                  Salva Voce
+                </Button>
+                <Button 
+                  variant="outline"
+                  size="lg"
+                  onClick={() => {
+                    setCurrentContent('');
+                    setCurrentRating(0);
+                    setCurrentAudioUrl(undefined);
+                    setCurrentTranscript(undefined);
+                    setCurrentSummary(undefined);
+                  }}
+                  disabled={!selectedDate}
+                >
+                  Pulisci
+                </Button>
+              </div>
             </section>
           </main>
         </div>
       </div>
+      
       <SettingsDialog
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         settings={settings}
         onSave={handleSaveSettings}
+      />
+      
+      <ExportDialog
+        isOpen={isExportOpen}
+        onClose={() => setIsExportOpen(false)}
+        entries={entries as unknown as JournalEntryForExport}
       />
     </>
   );
