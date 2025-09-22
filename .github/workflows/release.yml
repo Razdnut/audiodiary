@@ -50,10 +50,11 @@ jobs:
           node-version: 18
           cache: 'pnpm'
 
-      - name: Enable pnpm
+      - name: Install corepack and enable pnpm
         run: |
+          npm install -g corepack
           corepack enable
-          corepack use pnpm@10.17.0
+          corepack prepare pnpm@10.17.0 --activate
           pnpm --version
         env:
           CI: true
@@ -99,4 +100,3 @@ jobs:
         with:
           files: android/app/build/outputs/apk/debug/app-debug.apk
           token: ${{ secrets.GITHUB_TOKEN }}
-
