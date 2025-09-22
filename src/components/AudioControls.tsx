@@ -102,11 +102,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
 
     setIsLoading('summarize');
     try {
-      const fallbackPrompt =
-        lang === 'en'
-          ? 'You are an assistant that concisely and insightfully summarizes entries from a psychological journal. Extract the main themes, emotions and key reflections in a few sentences.'
-          : 'Sei un assistente che riassume in modo conciso e perspicace le voci di un diario psicologico. Estrai i temi principali, le emozioni e le riflessioni chiave in poche frasi.';
-      const summaryText = await summarizeText(settings, transcript, fallbackPrompt);
+      const summaryText = await summarizeText(settings, transcript, lang);
       onUpdate({ summary: summaryText });
       showSuccess(t('audio.summarized'));
     } catch (error: any) {

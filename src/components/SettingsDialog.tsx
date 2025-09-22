@@ -26,7 +26,11 @@ export interface Settings {
   apiKey: string;
   transcriptionModel: string;
   summaryModel: string;
-  summaryPrompt: string;
+  // legacy single-field prompt (kept for backward compatibility)
+  summaryPrompt?: string;
+  // per-language prompts
+  summaryPromptIt?: string;
+  summaryPromptEn?: string;
 }
 
 interface SettingsDialogProps {
@@ -45,7 +49,18 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, settin
   const [currentSettings, setCurrentSettings] = useState<Settings>(settings);
 
   useEffect(() => {
-    setCurrentSettings(settings);
+    // migrate legacy settings to per-language fields on open/update
+    const migrated: Settings = {
+      apiKey: settings.apiKey || '',
+      transcriptionModel: settings.transcriptionModel || 'whisper-1',
+      summaryModel: settings.summaryModel || 'gpt-4o-mini',
+      summaryPromptIt:
+        settings.summaryPromptIt ??
+        (settings.summaryPrompt ? settings.summaryPrompt : defaultSummaryPromptIt),
+      summaryPromptEn: settings.summaryPromptEn ?? defaultSummaryPromptEn,
+      summaryPrompt: settings.summaryPrompt, // keep legacy for other consumers
+    };
+    setCurrentSettings(migrated);
   }, [settings]);
 
   const handleSave = () => {
@@ -130,8 +145,18 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, settin
             </Label>
             <Textarea
               id="summary-prompt"
-              value={currentSettings.summaryPrompt || (lang === 'en' ? defaultSummaryPromptEn : defaultSummaryPromptIt)}
-              onChange={(e) => setCurrentSettings({ ...currentSettings, summaryPrompt: e.target.value })}
+              value={
+                (lang === 'en'
+                  ? currentSettings.summaryPromptEn
+                  : currentSettings.summaryPromptIt) || (lang === 'en' ? defaultSummaryPromptEn : defaultSummaryPromptIt)
+              }
+              onChange={(e) =>
+                setCurrentSettings((prev) =>
+                  lang === 'en'
+                    ? { ...prev, summaryPromptEn: e.target.value }
+                    : { ...prev, summaryPromptIt: e.target.value },
+                )
+              }
               className="col-span-3"
               rows={4}
               placeholder={lang === 'en' ? defaultSummaryPromptEn : defaultSummaryPromptIt}
@@ -140,7 +165,20 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, settin
         </div>
         <DialogFooter>
           <div className="flex w-full items-center justify-between gap-2">
-            <Button onClick={handleSave}>{t('settings.save')}</Button>
+            <Button
+              onClick={() => {
+                // keep legacy field in sync with current language's prompt for other consumers
+                const legacy =
+                  lang === 'en'
+                    ? currentSettings.summaryPromptEn || defaultSummaryPromptEn
+                    : currentSettings.summaryPromptIt || defaultSummaryPromptIt;
+                const payload: Settings = { ...currentSettings, summaryPrompt: legacy };
+                onSave(payload);
+                onClose();
+              }}
+            >
+              {t('settings.save')}
+            </Button>
             {onDeleteAllAudio && (
               <Button
                 type="button"

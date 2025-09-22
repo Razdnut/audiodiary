@@ -54,6 +54,10 @@ const DailyJournal = () => {
     apiKey: '',
     transcriptionModel: 'whisper-1',
     summaryModel: 'gpt-4o-mini',
+    summaryPromptIt:
+      'Sei un assistente che riassume in modo conciso e perspicace le voci di un diario psicologico. Estrai i temi principali, le emozioni e le riflessioni chiave in poche frasi.',
+    summaryPromptEn:
+      'You are an assistant that concisely and insightfully summarizes entries from a psychological journal. Extract the main themes, emotions and key reflections in a few sentences.',
     summaryPrompt:
       'Sei un assistente che riassume in modo conciso e perspicace le voci di un diario psicologico. Estrai i temi principali, le emozioni e le riflessioni chiave in poche frasi.',
   });
@@ -94,6 +98,13 @@ const DailyJournal = () => {
           apiKey: parsed.apiKey || '',
           transcriptionModel: parsed.transcriptionModel || 'whisper-1',
           summaryModel: parsed.summaryModel || 'gpt-4o-mini',
+          summaryPromptIt:
+            parsed.summaryPromptIt ||
+            parsed.summaryPrompt ||
+            'Sei un assistente che riassume in modo conciso e perspicace le voci di un diario psicologico. Estrai i temi principali, le emozioni e le riflessioni chiave in poche frasi.',
+          summaryPromptEn:
+            parsed.summaryPromptEn ||
+            'You are an assistant that concisely and insightfully summarizes entries from a psychological journal. Extract the main themes, emotions and key reflections in a few sentences.',
           summaryPrompt:
             parsed.summaryPrompt ||
             'Sei un assistente che riassume in modo conciso e perspicace le voci di un diario psicologico. Estrai i temi principali, le emozioni e le riflessioni chiave in poche frasi.',
