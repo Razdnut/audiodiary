@@ -1,14 +1,9 @@
-import { CapacitorConfig } from '@capacitor/cli';
+import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.audiodiary.app',
-  appName: 'Psychological Journal',
-  webDir: 'dist',
-  bundledWebRuntime: false,
-  server: {
-    androidScheme: 'https',
-  },
+  appId: 'com.example.jadegriffindive',
+  appName: 'jade-griffin-dive',
+  webDir: 'dist'
 };
 
 export default config;
-

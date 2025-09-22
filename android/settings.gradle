@@ -1,36 +1,5 @@
-pluginManagement {
-    repositories {
-        google()
-        mavenCentral()
-        gradlePluginPortal()
-    }
-    plugins {
-        id 'com.android.application' version '8.6.1' apply false
-        id 'com.android.library' version '8.6.1' apply false
-        id 'org.jetbrains.kotlin.android' version '1.9.24' apply false
-    }
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.id.startsWith("com.android.")) {
-                useVersion("8.6.1")
-            }
-        }
-    }
-}
+include ':app'
+include ':capacitor-cordova-android-plugins'
+project(':capacitor-cordova-android-plugins').projectDir = new File('./capacitor-cordova-android-plugins/')
 
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
-    repositories {
-        google()
-        mavenCentral()
-        maven { url = uri("https://jitpack.io") }
-    }
-}
-
-rootProject.name = "android"
-include(":app")
-include(":capacitor-android")
-include(":capacitor-cordova-android-plugins")
-include(":capacitor-filesystem")
-include(":capacitor-share")
-apply from: "./capacitor.settings.gradle"
+apply from: 'capacitor.settings.gradle'
