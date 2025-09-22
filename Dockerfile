@@ -8,7 +8,8 @@ WORKDIR /app
 # Install dependencies
 COPY package.json pnpm-lock.yaml ./
 RUN corepack enable \
- && corepack prepare pnpm@10.17.0 --activate \
+ && corepack use pnpm@10.17.0 \
+ && pnpm --version \
  && pnpm install --no-frozen-lockfile
 
 # Build
