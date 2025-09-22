@@ -248,7 +248,14 @@ const DailyJournal = () => {
         }
       }
     }
-    if ('transcript' in updates) setCurrentTranscript(updates.transcript);
+    if ('transcript' in updates) {
+      setCurrentTranscript(updates.transcript);
+      // If the note content is empty, auto-fill it with the transcript so it's visible immediately
+      const newTranscript = updates.transcript || '';
+      if ((currentContent || '').trim().length === 0 && newTranscript.trim().length > 0) {
+        setCurrentContent(newTranscript);
+      }
+    }
     if ('summary' in updates) setCurrentSummary(updates.summary);
     if ('audioFile' in updates) setCurrentAudioFile(updates.audioFile);
   };
