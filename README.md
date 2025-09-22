@@ -44,8 +44,18 @@ Key highlights:
 
 Add your screenshots here (optional):
 - Calendar and daily note view
+
+
+   <img width="384" height="508" alt="immagine" src="https://github.com/user-attachments/assets/d226a21a-a12b-422a-af5b-b4d3e12c668d" />
+
 - Audio controls and AI actions
+
+  <img width="377" height="844" alt="immagine" src="https://github.com/user-attachments/assets/4cabb175-eea4-4bd3-95b5-970b0af08578" />
+
 - Export dialog and Settings
+
+  <img width="392" height="344" alt="immagine" src="https://github.com/user-attachments/assets/a0d8436d-9c1b-4895-a4cb-54114e7a193b" />
+
 
 ## Getting Started
 
