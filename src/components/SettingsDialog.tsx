@@ -26,13 +26,9 @@ export interface Settings {
   apiKey: string;
   transcriptionModel: string;
   summaryModel: string;
-  // legacy single-field prompt (kept for backward compatibility)
   summaryPrompt?: string;
-  // per-language prompts
   summaryPromptIt?: string;
   summaryPromptEn?: string;
-  backendUrl?: string;
-  allowClientOpenAI?: boolean;
 }
 
 interface SettingsDialogProps {
@@ -51,7 +47,6 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, settin
   const [currentSettings, setCurrentSettings] = useState<Settings>(settings);
 
   useEffect(() => {
-    // migrate legacy settings to per-language fields on open/update
     const migrated: Settings = {
       apiKey: settings.apiKey || '',
       transcriptionModel: settings.transcriptionModel || 'whisper-1',
@@ -60,17 +55,10 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, settin
         settings.summaryPromptIt ??
         (settings.summaryPrompt ? settings.summaryPrompt : defaultSummaryPromptIt),
       summaryPromptEn: settings.summaryPromptEn ?? defaultSummaryPromptEn,
-      summaryPrompt: settings.summaryPrompt, // keep legacy for other consumers
-      backendUrl: settings.backendUrl || '',
-      allowClientOpenAI: settings.allowClientOpenAI ?? false,
+      summaryPrompt: settings.summaryPrompt,
     };
     setCurrentSettings(migrated);
   }, [settings]);
-
-  const handleSave = () => {
-    onSave(currentSettings);
-    onClose();
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -82,19 +70,6 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, settin
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="backend-url" className="text-right">
-              {t('settings.backendUrl')}
-            </Label>
-            <Input
-              id="backend-url"
-              type="text"
-              value={currentSettings.backendUrl || ''}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCurrentSettings({ ...currentSettings, backendUrl: e.target.value })}
-              className="col-span-3"
-              placeholder={t('settings.backendUrl.placeholder')}
-            />
-          </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="api-key" className="text-right">
               {t('settings.apiKey')}
@@ -184,7 +159,6 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, settin
           <div className="flex w-full items-center justify-between gap-2">
             <Button
               onClick={() => {
-                // keep legacy field in sync with current language's prompt for other consumers
                 const legacy =
                   lang === 'en'
                     ? currentSettings.summaryPromptEn || defaultSummaryPromptEn

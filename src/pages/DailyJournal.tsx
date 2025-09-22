@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -6,7 +7,7 @@ import Rating from '@/components/ui/rating';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { it, enUS } from 'date-fns/locale';
-import { Settings as SettingsIcon, Download, BarChart3 } from 'lucide-react';
+import { Settings as SettingsIcon, Download, BarChart3, FileClock } from 'lucide-react';
 import AudioControls from '@/components/AudioControls';
 import SettingsDialog, { Settings } from '@/components/SettingsDialog';
 import { Separator } from '@/components/ui/separator';
@@ -305,6 +306,12 @@ const DailyJournal = () => {
               </div>
               <ThemeToggle />
               <LanguageToggle />
+              <Button asChild variant="outline" size="icon">
+                <Link to="/recent">
+                  <FileClock className="h-5 w-5" />
+                  <span className="sr-only">{t('header.recent')}</span>
+                </Link>
+              </Button>
               <Button variant="outline" size="icon" onClick={() => setIsExportOpen(true)}>
                 <Download className="h-5 w-5" />
                 <span className="sr-only">{t('header.export')}</span>
@@ -505,53 +512,6 @@ const DailyJournal = () => {
                 onCopySummaryToNote={() => { const s = (currentSummary || '').trim(); if (!s) return; setCurrentContent(s); setContentAutoFilled(true); }}
               />
 
-              {/* Recent 30 days summary */}
-              <Card className="border-border/50">
-                <CardHeader>
-                  <CardTitle className="text-lg">{t('recent.title')}</CardTitle>
-                  <CardDescription>{t('recent.description')}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {(() => {
-                    const now = new Date();
-                    const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-                    const list = Object.entries(entries)
-                      .flatMap(([dateKey, arr]) => (arr || []).map((e, idx) => ({ ...e, dateKey, idx })))
-                      .map((e) => {
-                        const when = e.createdAt ? new Date(e.createdAt) : new Date(e.date + 'T00:00:00');
-                        return { ...e, when };
-                      })
-                      .filter((e) => e.when >= cutoff)
-                      .sort((a, b) => b.when.getTime() - a.when.getTime());
-                    if (list.length === 0) {
-                      return <div className="text-sm text-muted-foreground">{t('recent.empty')}</div>;
-                    }
-                    return (
-                      <div className="space-y-3 max-h-80 overflow-auto pr-1">
-                        {list.map((e, i) => {
-                          const display = (e.content && e.content.trim().length > 0)
-                            ? e.content
-                            : (e.summary && e.summary.trim().length > 0)
-                              ? e.summary
-                              : (e.transcript || '');
-                          return (
-                            <div key={`${e.dateKey}-${e.idx}-${i}`} className="p-3 rounded-md border bg-card">
-                              <div className="flex items-center justify-between text-sm text-muted-foreground">
-                                <span>{format(new Date(e.dateKey + 'T00:00:00'), 'PPP', { locale: lang === 'en' ? enUS : it })}</span>
-                                {e.createdAt && (
-                                  <span>{format(e.when, 'HH:mm', { locale: lang === 'en' ? enUS : it })}</span>
-                                )}
-                              </div>
-                              <div className="mt-2 whitespace-pre-wrap text-sm leading-relaxed line-clamp-5">{display}</div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })()}
-                </CardContent>
-              </Card>
-
               <div className="flex gap-4">
                 <Button 
                   onClick={handleSaveEntry} 
@@ -592,7 +552,7 @@ const DailyJournal = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">{t('stats.avgRating')}</span>
-                    <span className="font-semibold">?{averageRating}</span>
+                    <span className="font-semibold">{averageRating}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">{t('stats.recordings')}</span>
