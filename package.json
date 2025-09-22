@@ -17,6 +17,8 @@
     "android:release": "pnpm build && pnpm exec cap sync android && cd android && ./gradlew assembleRelease"
   },
   "dependencies": {
+    "@capacitor/filesystem": "^6.0.3",
+    "@capacitor/share": "^6.0.3",
     "@capacitor/android": "^6.2.0",
     "@capacitor/core": "^6.2.0",
     "@hookform/resolvers": "^3.9.0",

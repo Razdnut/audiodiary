@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Download, Calendar, FileText } from 'lucide-react';
 import { exportToJson, exportToIcs, downloadFile, JournalEntryForExport } from '@/utils/export-utils';
+import { shareContent } from '@/utils/native-share';
 import { format } from 'date-fns';
 import { useI18n } from '@/i18n/i18n';
 
@@ -30,7 +31,10 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, entries })
     try {
       const jsonData = exportToJson(entries);
       const filename = `diario-psicologico-${format(new Date(), 'yyyy-MM-dd')}.json`;
-      downloadFile(jsonData, filename, 'application/json');
+      // Try native share first (Android/iOS); fallback to browser download
+      shareContent(jsonData, filename, 'application/json').then(shared => {
+        if (!shared) downloadFile(jsonData, filename, 'application/json');
+      });
     } catch (error) {
       console.error('Errore durante l\'esportazione JSON:', error);
     } finally {
@@ -44,7 +48,9 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, entries })
     try {
       const icsData = await exportToIcs(entries, lang);
       const filename = `${lang === 'en' ? 'psychological-journal' : 'diario-psicologico'}-${format(new Date(), 'yyyy-MM-dd')}.ics`;
-      downloadFile(icsData, filename, 'text/calendar');
+      const mime = 'text/calendar';
+      const shared = await shareContent(icsData, filename, mime);
+      if (!shared) downloadFile(icsData, filename, mime);
     } catch (error) {
       console.error('Errore durante l\'esportazione ICS:', error);
     } finally {
