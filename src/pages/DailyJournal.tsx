@@ -153,10 +153,10 @@ const DailyJournal = () => {
     // If the main content is empty, fall back to transcript, then summary
     const contentToSave = (currentContent && currentContent.trim().length > 0)
       ? currentContent
-      : (currentTranscript && currentTranscript.trim().length > 0)
-        ? currentTranscript
-        : (currentSummary && currentSummary.trim().length > 0)
-          ? currentSummary
+      : (currentSummary && currentSummary.trim().length > 0)
+        ? currentSummary
+        : (currentTranscript && currentTranscript.trim().length > 0)
+          ? currentTranscript
           : '';
     const newEntry: JournalEntry = {
       date: dateKey,
