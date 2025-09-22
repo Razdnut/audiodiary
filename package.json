@@ -4,7 +4,6 @@
     "version": "0.0.0",
     "type": "module",
     "license": "MIT",
-    "packageManager": "pnpm@10.17.0",
     "scripts": {
         "postinstall": "node scripts/patch-agp.cjs",
         "dev": "vite",
@@ -12,17 +11,17 @@
         "build:dev": "vite build --mode development",
         "lint": "eslint .",
         "preview": "vite preview",
-        "cap:add:android": "pnpm exec cap add android",
-        "cap:sync": "pnpm exec cap sync",
-        "android:debug": "pnpm build && pnpm exec cap sync android && cd android && ./gradlew assembleDebug",
-        "android:release": "pnpm build && pnpm exec cap sync android && cd android && ./gradlew assembleRelease",
+        "cap:add:android": "npx cap add android",
+        "cap:sync": "npx cap sync",
+        "android:debug": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug",
+        "android:release": "npm run build && npx cap sync android && cd android && ./gradlew assembleRelease",
         "android:sync": "npm run build && npx cap copy android",
         "android:open": "npx cap open android",
         "android:run": "npm run build && npx cap copy android && npx cap open android"
     },
     "dependencies": {
         "@capacitor/android": "^6.2.0",
-        "@capacitor/core": "^6.2.0",
+        "@capacitor/core": "^6.2.1",
         "@capacitor/filesystem": "^6.0.3",
         "@capacitor/ios": "^7.4.3",
         "@capacitor/share": "^6.0.3",
@@ -79,7 +78,7 @@
         "zod": "^3.23.8"
     },
     "devDependencies": {
-        "@capacitor/cli": "^6.2.0",
+        "@capacitor/cli": "^6.2.1",
         "@dyad-sh/react-vite-component-tagger": "^0.8.0",
         "@eslint/js": "^9.9.0",
         "@tailwindcss/typography": "^0.5.15",

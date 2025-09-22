@@ -46,29 +46,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 1) Install pnpm first so setup-node's cache=pnpm can find it
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.17.0
-          run_install: false
-
-      # 2) Then setup Node with pnpm caching
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: 'pnpm'
-          cache-dependency-path: 'pnpm-lock.yaml'
+          cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
         env:
           CI: true
           NO_UPDATE_NOTIFIER: '1'
 
       - name: Build web app
-        run: pnpm build
+        run: npm run build
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -82,13 +74,13 @@ jobs:
       - name: Add Android platform (if missing)
         run: |
           if [ ! -d android ]; then
-            pnpm exec cap add android
+            npx cap add android
           else
             echo "Android project already exists, skipping add."
           fi
 
       - name: Sync Capacitor
-        run: pnpm exec cap sync android
+        run: npx cap sync android
 
       # (opzionale ma consigliato) cache Gradle per build più rapide
       - name: Cache Gradle

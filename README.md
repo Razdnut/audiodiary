@@ -60,20 +60,20 @@ Add your screenshots here (optional):
 ## Getting Started
 
 Prerequisites:
-- Node.js 18+ and pnpm (or npm/yarn)
+- Node.js 18+ and npm
 
 Install and run:
 
 ```bash
-pnpm install
-pnpm dev
+npm install
+npm run dev
 ```
 
 Build:
 
 ```bash
-pnpm build
-pnpm preview
+npm run build
+npm run preview
 ```
 
 ## Docker
@@ -110,10 +110,10 @@ Build an Android APK with Capacitor.
 Local (Android Studio):
 - Prereqs: Android Studio (SDK + build tools), Java 17.
 - Steps:
-  1. Install deps: `pnpm install`
-  2. Build web: `pnpm build`
-  3. Add/sync Android: `pnpm cap:add:android` (first time), then `pnpm cap:sync`
-  4. Open in Android Studio: `pnpm exec cap open android`
+  1. Install deps: `npm install`
+  2. Build web: `npm run build`
+  3. Add/sync Android: `npm run cap:add:android` (first time), then `npm run cap:sync`
+  4. Open in Android Studio: `npm run android:open`
   5. Build a Debug APK: from Android Studio, or via Gradle: `cd android && ./gradlew assembleDebug`
   6. APK path: `android/app/build/outputs/apk/debug/app-debug.apk`
 
