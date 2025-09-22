@@ -30,7 +30,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
   settings,
   audioFile,
 }) => {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [isRecording, setIsRecording] = useState(false);
   const [isLoading, setIsLoading] = useState<'transcribe' | 'summarize' | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -102,7 +102,11 @@ const AudioControls: React.FC<AudioControlsProps> = ({
 
     setIsLoading('summarize');
     try {
-      const summaryText = await summarizeText(settings, transcript);
+      const fallbackPrompt =
+        lang === 'en'
+          ? 'You are an assistant that concisely and insightfully summarizes entries from a psychological journal. Extract the main themes, emotions and key reflections in a few sentences.'
+          : 'Sei un assistente che riassume in modo conciso e perspicace le voci di un diario psicologico. Estrai i temi principali, le emozioni e le riflessioni chiave in poche frasi.';
+      const summaryText = await summarizeText(settings, transcript, fallbackPrompt);
       onUpdate({ summary: summaryText });
       showSuccess(t('audio.summarized'));
     } catch (error: any) {

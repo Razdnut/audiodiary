@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { it as dfIt, enUS as dfEnUS } from 'date-fns/locale';
+import type { Locale } from 'date-fns';
 
 export type Lang = 'it' | 'en';
 

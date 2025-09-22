@@ -23,7 +23,11 @@ export const transcribeAudio = async (settings: Settings, audioFile: File): Prom
   }
 };
 
-export const summarizeText = async (settings: Settings, text: string): Promise<string> => {
+export const summarizeText = async (
+  settings: Settings,
+  text: string,
+  fallbackPrompt?: string,
+): Promise<string> => {
   if (!settings.apiKey) {
     throw new Error('La chiave API di OpenAI non è impostata.');
   }
@@ -39,7 +43,10 @@ export const summarizeText = async (settings: Settings, text: string): Promise<s
       messages: [
         {
           role: 'system',
-          content: settings.summaryPrompt || 'Sei un assistente che riassume in modo conciso e perspicace le voci di un diario psicologico. Estrai i temi principali, le emozioni e le riflessioni chiave in poche frasi.',
+          content:
+            settings.summaryPrompt ||
+            fallbackPrompt ||
+            'Sei un assistente che riassume in modo conciso e perspicace le voci di un diario psicologico. Estrai i temi principali, le emozioni e le riflessioni chiave in poche frasi.',
         },
         {
           role: 'user',
