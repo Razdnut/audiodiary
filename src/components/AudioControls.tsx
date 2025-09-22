@@ -141,7 +141,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
 
     setIsLoading('transcribe');
     try {
-      const transcriptText = await transcribeAudio(settings, audioFile);
+      const transcriptText = await transcribeAudio(settings, audioFile, lang);
       onUpdate({ transcript: transcriptText });
       showSuccess(t('audio.transcribed'));
     } catch (error: any) {

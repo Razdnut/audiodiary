@@ -84,7 +84,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, settin
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="backend-url" className="text-right">
-              Backend URL
+              {t('settings.backendUrl')}
             </Label>
             <Input
               id="backend-url"
@@ -92,7 +92,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, settin
               value={currentSettings.backendUrl || ''}
               onChange={(e) => setCurrentSettings({ ...currentSettings, backendUrl: e.target.value })}
               className="col-span-3"
-              placeholder="https://your-api.example.com"
+              placeholder={t('settings.backendUrl.placeholder')}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">

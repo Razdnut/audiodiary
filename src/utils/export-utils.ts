@@ -17,10 +17,10 @@ export const exportToJson = (entries: JournalEntryForExport[]): string => {
 };
 
 export const exportToIcs = async (entries: JournalEntryForExport[], lang: Lang = 'it'): Promise<string> => {
-  const t = (key: 'calendarName' | 'rating' | 'none') => {
+  const t = (key: 'calendarName' | 'rating' | 'none' | 'content' | 'transcript' | 'summary') => {
     const map = {
-      it: { calendarName: 'Diario Psicologico', rating: 'Valutazione', none: 'Nessuna' },
-      en: { calendarName: 'Psychological Journal', rating: 'Rating', none: 'None' },
+      it: { calendarName: 'Diario Psicologico', rating: 'Valutazione', none: 'Nessuna', content: 'Contenuto', transcript: 'Trascrizione', summary: 'Sintesi' },
+      en: { calendarName: 'Psychological Journal', rating: 'Rating', none: 'None', content: 'Content', transcript: 'Transcript', summary: 'Summary' },
     } as const;
     return map[lang][key];
   };
@@ -28,7 +28,7 @@ export const exportToIcs = async (entries: JournalEntryForExport[], lang: Lang =
     const [year, month, day] = entry.date.split('-').map(Number);
     const event: EventAttributes = {
       title: `${t('calendarName')} - ${t('rating')}: ${entry.rating}/5`,
-      description: `Contenuto: ${entry.content}\n\nTrascrizione: ${entry.transcript || t('none')}\n\nSintesi: ${entry.summary || t('none')}`,
+      description: `${t('content')}: ${entry.content}\n\n${t('transcript')}: ${entry.transcript || t('none')}\n\n${t('summary')}: ${entry.summary || t('none')}`,
       start: [year, month, day, 18, 0],
       end: [year, month, day, 18, 30],
       startInputType: 'local',

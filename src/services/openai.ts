@@ -1,9 +1,21 @@
 import OpenAI from 'openai';
 import { Settings } from '@/components/SettingsDialog';
-import { Capacitor } from '@capacitor/core';
 import type { Lang } from '@/i18n/i18n';
 
-export const transcribeAudio = async (settings: Settings, audioFile: File): Promise<string> => {
+export const transcribeAudio = async (settings: Settings, audioFile: File, lang: Lang = 'it'): Promise<string> => {
+  const M = {
+    it: {
+      backendErr: 'Errore del backend di trascrizione',
+      needBackend: 'Per motivi di sicurezza, configura un Backend URL nelle impostazioni per usare la trascrizione.',
+      needKey: 'La chiave API di OpenAI non è impostata.',
+    },
+    en: {
+      backendErr: 'Transcription backend error',
+      needBackend: 'For security reasons, set a Backend URL in settings to use transcription.',
+      needKey: 'OpenAI API key is not set.',
+    },
+  } as const;
+
   // Prefer backend if configured
   if (settings.backendUrl && settings.backendUrl.trim()) {
     const url = settings.backendUrl.replace(/\/$/, '') + '/transcribe';
@@ -11,16 +23,14 @@ export const transcribeAudio = async (settings: Settings, audioFile: File): Prom
     form.append('file', audioFile);
     form.append('model', settings.transcriptionModel);
     const res = await fetch(url, { method: 'POST', body: form });
-    if (!res.ok) throw new Error('Transcribe backend error');
+    if (!res.ok) throw new Error(M[lang].backendErr);
     const data = await res.json();
     return data.text || data.transcript || '';
   }
-  if (!settings.allowClientOpenAI) {
-    throw new Error('Per motivi di sicurezza, configura un Backend URL nelle impostazioni per usare la trascrizione.');
-  }
-  if (!settings.apiKey) {
-    throw new Error('La chiave API di OpenAI non è impostata.');
-  }
+
+  if (!settings.allowClientOpenAI) throw new Error(M[lang].needBackend);
+  if (!settings.apiKey) throw new Error(M[lang].needKey);
+
   const openai = new OpenAI({ apiKey: settings.apiKey, dangerouslyAllowBrowser: true });
   const response = await openai.audio.transcriptions.create({ file: audioFile, model: settings.transcriptionModel });
   return response.text;
@@ -42,16 +52,14 @@ export const summarizeText = async (
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ model: settings.summaryModel, prompt, text, lang }),
     });
-    if (!res.ok) throw new Error('Summarize backend error');
+    if (!res.ok) throw new Error(lang === 'en' ? 'Summarize backend error' : 'Errore del backend di sintesi');
     const data = await res.json();
     return data.text || data.summary || '';
   }
-  if (!settings.allowClientOpenAI) {
-    throw new Error('Per motivi di sicurezza, configura un Backend URL nelle impostazioni per usare la sintesi.');
-  }
-  if (!settings.apiKey) {
-    throw new Error('La chiave API di OpenAI non è impostata.');
-  }
+
+  if (!settings.allowClientOpenAI) throw new Error(lang === 'en' ? 'For security reasons, set a Backend URL in settings to use summarization.' : 'Per motivi di sicurezza, configura un Backend URL nelle impostazioni per usare la sintesi.');
+  if (!settings.apiKey) throw new Error(lang === 'en' ? 'OpenAI API key is not set.' : 'La chiave API di OpenAI non è impostata.');
+
   const openai = new OpenAI({ apiKey: settings.apiKey, dangerouslyAllowBrowser: true });
   const defaultIt = 'Sei un assistente che riassume in modo conciso e perspicace le voci di un diario psicologico. Estrai i temi principali, le emozioni e le riflessioni chiave in poche frasi.';
   const defaultEn = 'You are an assistant that concisely and insightfully summarizes entries from a psychological journal. Extract the main themes, emotions and key reflections in a few sentences.';
@@ -60,5 +68,6 @@ export const summarizeText = async (
     model: settings.summaryModel,
     messages: [ { role: 'system', content: chosenPrompt }, { role: 'user', content: text } ],
   });
-  return response.choices[0]?.message?.content || 'Nessuna sintesi generata.';
+  return response.choices[0]?.message?.content || (lang === 'en' ? 'No summary generated.' : 'Nessuna sintesi generata.');
 };
+

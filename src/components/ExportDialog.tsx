@@ -81,7 +81,7 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, entries })
           <div className="flex items-center space-x-2">
             <Checkbox id="include-sensitive" checked={includeSensitive} onCheckedChange={(v) => setIncludeSensitive(Boolean(v))} />
             <label htmlFor="include-sensitive" className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              Includi contenuti/testi sensibili in export
+              {t('export.includeSensitive')}
             </label>
           </div>
           <div className="flex flex-col gap-2">

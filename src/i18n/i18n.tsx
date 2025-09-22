@@ -57,6 +57,8 @@ const translations: Translations = {
     'settings.title': 'Impostazioni',
     'settings.description': 'Configura la tua chiave API di OpenAI e i modelli da utilizzare. La tua chiave API è salvata solo nel tuo browser.',
     'settings.apiKey': 'API Key',
+    'settings.backendUrl': 'URL Backend',
+    'settings.backendUrl.placeholder': 'https://tuo-api.esempio.com',
     'settings.transcription': 'Trascrizione',
     'settings.summary': 'Sintesi',
     'settings.systemPrompt': 'Prompt di Sistema',
@@ -72,10 +74,14 @@ const translations: Translations = {
     'export.ics': 'Esporta in Calendar (ICS)',
     'export.ics.desc': 'Importa le tue voci nel calendario preferito.',
     'export.cancel': 'Annulla',
+    'export.includeSensitive': 'Includi contenuti/testi sensibili in export',
 
     'ics.calendarName': 'Diario Psicologico',
     'ics.rating': 'Valutazione',
     'ics.none': 'Nessuna',
+    'ics.content': 'Contenuto',
+    'ics.transcript': 'Trascrizione',
+    'ics.summary': 'Sintesi',
   },
   en: {
     'app.title': 'Psychological Journal',
@@ -126,6 +132,8 @@ const translations: Translations = {
     'settings.title': 'Settings',
     'settings.description': 'Configure your OpenAI API key and models. Your API key is saved only in your browser.',
     'settings.apiKey': 'API Key',
+    'settings.backendUrl': 'Backend URL',
+    'settings.backendUrl.placeholder': 'https://your-api.example.com',
     'settings.transcription': 'Transcription',
     'settings.summary': 'Summary',
     'settings.systemPrompt': 'System Prompt',
@@ -141,10 +149,14 @@ const translations: Translations = {
     'export.ics': 'Export to Calendar (ICS)',
     'export.ics.desc': 'Import your entries into your favorite calendar.',
     'export.cancel': 'Cancel',
+    'export.includeSensitive': 'Include sensitive content/texts in export',
 
     'ics.calendarName': 'Psychological Journal',
     'ics.rating': 'Rating',
     'ics.none': 'None',
+    'ics.content': 'Content',
+    'ics.transcript': 'Transcript',
+    'ics.summary': 'Summary',
   },
 };
 
