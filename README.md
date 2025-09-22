@@ -103,6 +103,25 @@ docker compose up --build
 # Open http://localhost:8080
 ```
 
+## Android (Capacitor)
+
+Build an Android APK with Capacitor.
+
+Local (Android Studio):
+- Prereqs: Android Studio (SDK + build tools), Java 17.
+- Steps:
+  1. Install deps: `pnpm install`
+  2. Build web: `pnpm build`
+  3. Add/sync Android: `pnpm cap:add:android` (first time), then `pnpm cap:sync`
+  4. Open in Android Studio: `pnpm exec cap open android`
+  5. Build a Debug APK: from Android Studio, or via Gradle: `cd android && ./gradlew assembleDebug`
+  6. APK path: `android/app/build/outputs/apk/debug/app-debug.apk`
+
+CI (GitHub Actions):
+- This repo includes a workflow that builds a Debug APK on tag push (`v*`) or manual dispatch:
+  - `.github/workflows/android-apk.yml`
+  - The APK is uploaded as an artifact and attached to the GitHub Release for the tag.
+
 ## OpenAI Setup (Optional)
 
 All AI functionality runs in the browser. Open Settings and paste your OpenAI API key. You can choose:
