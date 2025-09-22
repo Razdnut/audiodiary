@@ -12,6 +12,9 @@ permissions:
 jobs:
   build-apk:
     runs-on: ubuntu-latest
+    env:
+      CI: true
+      NO_UPDATE_NOTIFIER: '1'
     steps:
       - name: Checkout
         uses: actions/checkout@v4

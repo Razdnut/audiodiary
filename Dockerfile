@@ -1,6 +1,8 @@
 # Multi-stage build for a static Vite React app served by Nginx
 
 FROM node:18-alpine AS build
+ENV CI=true
+ENV NO_UPDATE_NOTIFIER=1
 WORKDIR /app
 
 # Install dependencies
