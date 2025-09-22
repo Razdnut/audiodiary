@@ -39,7 +39,7 @@ export const summarizeText = async (settings: Settings, text: string): Promise<s
       messages: [
         {
           role: 'system',
-          content: 'Sei un assistente che riassume in modo conciso e perspicace le voci di un diario psicologico. Estrai i temi principali, le emozioni e le riflessioni chiave in poche frasi.',
+          content: settings.summaryPrompt || 'Sei un assistente che riassume in modo conciso e perspicace le voci di un diario psicologico. Estrai i temi principali, le emozioni e le riflessioni chiave in poche frasi.',
         },
         {
           role: 'user',

@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -24,6 +25,7 @@ export interface Settings {
   apiKey: string;
   transcriptionModel: string;
   summaryModel: string;
+  summaryPrompt: string;
 }
 
 interface SettingsDialogProps {
@@ -32,6 +34,8 @@ interface SettingsDialogProps {
   settings: Settings;
   onSave: (newSettings: Settings) => void;
 }
+
+const defaultSummaryPrompt = 'Sei un assistente che riassume in modo conciso e perspicace le voci di un diario psicologico. Estrai i temi principali, le emozioni e le riflessioni chiave in poche frasi.';
 
 const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, settings, onSave }) => {
   const [currentSettings, setCurrentSettings] = useState<Settings>(settings);
@@ -47,7 +51,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, settin
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Impostazioni</DialogTitle>
           <DialogDescription>
@@ -101,6 +105,19 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, settin
                 <SelectItem value="gpt-3.5-turbo">gpt-3.5-turbo</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div className="grid grid-cols-4 items-start gap-4">
+            <Label htmlFor="summary-prompt" className="text-right pt-2">
+              Prompt di Sintesi
+            </Label>
+            <Textarea
+              id="summary-prompt"
+              value={currentSettings.summaryPrompt || defaultSummaryPrompt}
+              onChange={(e) => setCurrentSettings({ ...currentSettings, summaryPrompt: e.target.value })}
+              className="col-span-3"
+              rows={4}
+              placeholder={defaultSummaryPrompt}
+            />
           </div>
         </div>
         <DialogFooter>

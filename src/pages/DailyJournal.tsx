@@ -274,7 +274,7 @@ const DailyJournal = () => {
       <ExportDialog
         isOpen={isExportOpen}
         onClose={() => setIsExportOpen(false)}
-        entries={entries as unknown as JournalEntryForExport}
+        entries={entries as { [key: string]: JournalEntryForExport }}
       />
     </>
   );

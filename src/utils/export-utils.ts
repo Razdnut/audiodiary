@@ -1,4 +1,4 @@
-import { createEvent } from 'ics';
+import { createEvents, type EventAttributes } from 'ics';
 import { format } from 'date-fns';
 
 export interface JournalEntryForExport {
@@ -16,22 +16,23 @@ export const exportToJson = (entries: JournalEntryForExport[]): string => {
 };
 
 export const exportToIcs = async (entries: JournalEntryForExport[]): Promise<string> => {
-  const events = entries.map((entry, index) => {
+  const events: EventAttributes[] = entries.map((entry, index) => {
     const [year, month, day] = entry.date.split('-').map(Number);
-    return {
+    const event: EventAttributes = {
       title: `Diario Psicologico - Valutazione: ${entry.rating}/5`,
       description: `Contenuto: ${entry.content}\n\nTrascrizione: ${entry.transcript || 'Nessuna'}\n\nSintesi: ${entry.summary || 'Nessuna'}`,
-      start: [year, month, day, 18, 0] as [number, number, number, number, number],
-      end: [year, month, day, 18, 30] as [number, number, number, number, number],
+      start: [year, month, day, 18, 0],
+      end: [year, month, day, 18, 30],
       startInputType: 'local',
       endInputType: 'local',
       calName: 'Diario Psicologico',
       uid: `diario-${entry.date}-${index}`,
     };
+    return event;
   });
 
   return new Promise((resolve, reject) => {
-    createEvent(events[0], (error, value) => {
+    createEvents(events, (error, value) => {
       if (error) {
         reject(error);
       } else {
