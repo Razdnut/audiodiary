@@ -44,7 +44,7 @@ jobs:
 
       - name: Prepare release notes
         run: |
-          cat > release_notes.md << 'EOF'
+          cat > release_notes.md << EOF
           # Psychological Journal v${{ steps.vars.outputs.version }}
 
           A modern, privacy‑friendly journaling web app. This release publishes the first stable Docker image and includes a large set of features and polish.
@@ -67,8 +67,8 @@ jobs:
           - Settings change: added language‑specific prompts (`summaryPromptIt`/`summaryPromptEn`). Legacy `summaryPrompt` is kept in sync for compatibility.
 
           ## Docker
-          - Image: `ghcr.io/${{ toLower(github.repository) }}:${{ steps.vars.outputs.version }}` (also `:latest`).
-          - Run: `docker run --rm -p 8080:80 ghcr.io/${{ toLower(github.repository) }}:${{ steps.vars.outputs.version }}` then open http://localhost:8080.
+          - Image: `$IMAGE:${{ steps.vars.outputs.version }}` (also `:latest`).
+          - Run: `docker run --rm -p 8080:80 $IMAGE:${{ steps.vars.outputs.version }}` then open http://localhost:8080.
           - Compose: `docker compose up --build` (maps 8080 → 80).
 
           ## Credits
