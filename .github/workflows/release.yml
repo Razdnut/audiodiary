@@ -79,8 +79,13 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Add Android platform
-        run: pnpm exec cap add android
+      - name: Add Android platform (if missing)
+        run: |
+          if [ ! -d android ]; then
+            pnpm exec cap add android
+          else
+            echo "Android project already exists, skipping add."
+          fi
 
       - name: Sync Capacitor
         run: pnpm exec cap sync android
