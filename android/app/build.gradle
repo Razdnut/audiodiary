@@ -1,5 +1,5 @@
 plugins {
-  id 'com.android.application'
+  id 'com.android.application' version '8.2.1'
 }
 
 android {
@@ -29,11 +29,6 @@ android {
   }
 }
 
-repositories {
-  google()
-  mavenCentral()
-}
-
 dependencies {
   implementation project(':capacitor-android')
   implementation project(':capacitor-filesystem')
@@ -42,4 +37,3 @@ dependencies {
 }
 
 apply from: file('capacitor.build.gradle')
-

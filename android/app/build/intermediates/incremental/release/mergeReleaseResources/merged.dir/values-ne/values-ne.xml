@@ -21,7 +21,7 @@
     <string msgid="7208076849092622260" name="abc_search_hint">"खोज्नुहोस्…"</string>
     <string msgid="3741173234950517107" name="abc_searchview_description_clear">"क्वेरी खाली गर्नुहोस्"</string>
     <string msgid="693312494995508443" name="abc_searchview_description_query">"खोज प्रश्न"</string>
-    <string msgid="3417662926640357176" name="abc_searchview_description_search">"खोज"</string>
+    <string msgid="3417662926640357176" name="abc_searchview_description_search">"खोज्नुहोस्"</string>
     <string msgid="1486535517437947103" name="abc_searchview_description_submit">"क्वेरी पेस गर्नुहोस्"</string>
     <string msgid="2293578557972875415" name="abc_searchview_description_voice">"आवाजमा आधारित खोजी"</string>
     <string msgid="8875138169939072951" name="abc_shareactionprovider_share_with">"यसमार्फत सेयर गर्नुहोस्"</string>

@@ -1,0 +1,13 @@
+node_modules
+android
+.git
+.github
+dist
+*.log
+*.lock
+Dockerfile
+docker-compose.yml
+README.md
+LICENSE
+**/*.map
+

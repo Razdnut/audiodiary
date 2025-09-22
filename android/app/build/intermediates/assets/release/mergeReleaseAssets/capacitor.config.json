@@ -1,9 +1,0 @@
-{
-	"appId": "com.audiodiary.app",
-	"appName": "Psychological Journal",
-	"webDir": "dist",
-	"bundledWebRuntime": false,
-	"server": {
-		"androidScheme": "https"
-	}
-}
