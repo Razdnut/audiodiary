@@ -253,7 +253,14 @@ const DailyJournal = () => {
     if ('transcript' in updates) {
       setCurrentTranscript(updates.transcript);
     }
-    if ('summary' in updates) {\r\n      setCurrentSummary(updates.summary);\r\n      const newSummary = updates.summary || '';\r\n      if ((contentAutoFilled || (currentContent || '').trim().length === 0) && newSummary.trim().length > 0) {\r\n        setCurrentContent(newSummary);\r\n        setContentAutoFilled(true);\r\n      }\r\n    }
+    if ('summary' in updates) {
+      setCurrentSummary(updates.summary);
+      const newSummary = updates.summary || '';
+      if ((contentAutoFilled || (currentContent || '').trim().length === 0) && newSummary.trim().length > 0) {
+        setCurrentContent(newSummary);
+        setContentAutoFilled(true);
+      }
+    }
     if ('audioFile' in updates) setCurrentAudioFile(updates.audioFile);
   };
 
