@@ -80,10 +80,10 @@ pnpm preview
 
 Two options are provided: run the published image from GitHub Container Registry (GHCR) or build locally.
 
-- Pull and run from GHCR (version 1.0.0):
+- Pull and run from GHCR (version 1.0.7):
 
 ```bash
-docker run --rm -p 8080:80 ghcr.io/razdnut/audiodiary:1.0.0
+docker run --rm -p 8080:80 ghcr.io/razdnut/audiodiary:1.0.7
 # Then open http://localhost:8080
 ```
 
