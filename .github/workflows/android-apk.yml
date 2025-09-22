@@ -23,7 +23,9 @@ jobs:
           cache: 'pnpm'
 
       - name: Enable corepack
-        run: corepack enable
+        run: |
+          corepack enable
+          corepack prepare pnpm@9 --activate
 
       - name: Install deps
         run: pnpm install --no-frozen-lockfile
@@ -64,4 +66,3 @@ jobs:
           files: android/app/build/outputs/apk/debug/app-debug.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
