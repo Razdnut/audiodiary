@@ -10,6 +10,7 @@ import { transcribeAudio, summarizeText } from '@/services/openai';
 import { showError, showSuccess } from '@/utils/toast';
 import { Label } from './ui/label';
 import { useI18n } from '@/i18n/i18n';
+import { Capacitor } from '@capacitor/core';
 
 interface AudioControlsProps {
   audioUrl: string | undefined;
@@ -35,24 +36,62 @@ const AudioControls: React.FC<AudioControlsProps> = ({
   const [isLoading, setIsLoading] = useState<'transcribe' | 'summarize' | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const isMediaRecorderSupported = typeof window !== 'undefined'
+    && typeof (window as any).MediaRecorder !== 'undefined'
+    && !!navigator.mediaDevices?.getUserMedia;
+
+  const startFallbackFileCapture = () => {
+    try {
+      fileInputRef.current?.click();
+    } catch (e) {
+      showError(t('audio.micDenied'));
+      console.error('Fallback audio capture failed', e);
+    }
+  };
 
   const handleToggleRecording = async () => {
     if (isRecording) {
       mediaRecorderRef.current?.stop();
       setIsRecording(false);
     } else {
+      if (!isMediaRecorderSupported) {
+        // WebView/device doesn't support MediaRecorder → fallback to native file capture
+        startFallbackFileCapture();
+        return;
+      }
+
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorderRef.current = new MediaRecorder(stream);
+
+        // Pick a supported mime type when possible
+        let options: MediaRecorderOptions | undefined = undefined;
+        const mrAny = (window as any).MediaRecorder as any;
+        if (mrAny && typeof mrAny.isTypeSupported === 'function') {
+          if (mrAny.isTypeSupported('audio/webm;codecs=opus')) {
+            options = { mimeType: 'audio/webm;codecs=opus' };
+          } else if (mrAny.isTypeSupported('audio/webm')) {
+            options = { mimeType: 'audio/webm' };
+          } else if (mrAny.isTypeSupported('audio/mp4')) {
+            options = { mimeType: 'audio/mp4' };
+          }
+        }
+
+        mediaRecorderRef.current = new MediaRecorder(stream, options);
         audioChunksRef.current = [];
 
         mediaRecorderRef.current.ondataavailable = (event) => {
-          audioChunksRef.current.push(event.data);
+          if (event.data && event.data.size > 0) {
+            audioChunksRef.current.push(event.data);
+          }
         };
 
         mediaRecorderRef.current.onstop = () => {
-          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-          const newAudioFile = new File([audioBlob], "recording.webm", { type: "audio/webm" });
+          const blobType = options?.mimeType || 'audio/webm';
+          const audioBlob = new Blob(audioChunksRef.current, { type: blobType });
+          const fileExt = blobType.includes('mp4') ? 'm4a' : 'webm';
+          const newAudioFile = new File([audioBlob], `recording.${fileExt}` , { type: blobType });
           const audioUrl = URL.createObjectURL(audioBlob);
           onUpdate({ audioUrl, audioFile: newAudioFile, transcript: undefined, summary: undefined });
           stream.getTracks().forEach(track => track.stop()); // Stop microphone access
@@ -61,10 +100,32 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         mediaRecorderRef.current.start();
         setIsRecording(true);
         onUpdate({ audioUrl: undefined, transcript: undefined, summary: undefined, audioFile: undefined });
-      } catch (err) {
-        showError(t('audio.micDenied'));
-        console.error("Errore accesso al microfono:", err);
+      } catch (err: any) {
+        // If permission is denied or recording not supported, try fallback capture on Android
+        const name = err?.name || '';
+        console.warn('getUserMedia/MediaRecorder error:', name, err);
+        const shouldFallback = Capacitor.isNativePlatform() || name === 'NotAllowedError' || name === 'NotFoundError' || name === 'NotSupportedError';
+        if (shouldFallback) {
+          startFallbackFileCapture();
+        } else {
+          showError(t('audio.micDenied'));
+        }
       }
+    }
+  };
+
+  const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const url = URL.createObjectURL(file);
+      onUpdate({ audioUrl: url, audioFile: file, transcript: undefined, summary: undefined });
+    } catch (err) {
+      console.error('Failed to load selected audio file', err);
+      showError(t('audio.micDenied'));
+    } finally {
+      // reset input so selecting the same file again triggers change
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -125,6 +186,15 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         <CardTitle className="text-lg">{t('audio.title')}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Hidden input used as Android fallback when MediaRecorder/getUserMedia is unavailable */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="audio/*"
+          capture="microphone"
+          className="hidden"
+          onChange={handleFileSelected}
+        />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <Button onClick={handleToggleRecording} disabled={disabled || isLoading !== null} variant={isRecording ? "destructive" : "outline"}>
             {isRecording ? (
