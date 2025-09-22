@@ -150,9 +150,17 @@ const DailyJournal = () => {
   const handleSaveEntry = () => {
     if (!selectedDate) return;
     const dateKey = format(selectedDate, 'yyyy-MM-dd');
+    // If the main content is empty, fall back to transcript, then summary
+    const contentToSave = (currentContent && currentContent.trim().length > 0)
+      ? currentContent
+      : (currentTranscript && currentTranscript.trim().length > 0)
+        ? currentTranscript
+        : (currentSummary && currentSummary.trim().length > 0)
+          ? currentSummary
+          : '';
     const newEntry: JournalEntry = {
       date: dateKey,
-      content: currentContent,
+      content: contentToSave,
       rating: currentRating,
       audioUrl: currentAudioUrl,
       transcript: currentTranscript,
@@ -168,6 +176,8 @@ const DailyJournal = () => {
     }
     const updatedEntries = { ...entries, [dateKey]: dayEntries };
     setEntries(updatedEntries);
+    // Reflect fallback in UI text area as well
+    if (contentToSave !== currentContent) setCurrentContent(contentToSave);
     
     try {
       localStorage.setItem('journal-entries', JSON.stringify(updatedEntries));
