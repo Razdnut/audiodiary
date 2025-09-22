@@ -16,6 +16,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Configure git identity
+        run: |
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git config user.name "${{ github.actor }}"
+
       - name: Create next patch tag
         run: |
           git fetch --tags
@@ -34,4 +39,3 @@ jobs:
           echo "Latest tag: ${LATEST:-none} -> Next: $NEXT"
           git tag -a "$NEXT" -m "Auto release $NEXT"
           git push origin "$NEXT"
-
