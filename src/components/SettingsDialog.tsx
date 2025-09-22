@@ -31,6 +31,8 @@ export interface Settings {
   // per-language prompts
   summaryPromptIt?: string;
   summaryPromptEn?: string;
+  backendUrl?: string;
+  allowClientOpenAI?: boolean;
 }
 
 interface SettingsDialogProps {
@@ -59,6 +61,8 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, settin
         (settings.summaryPrompt ? settings.summaryPrompt : defaultSummaryPromptIt),
       summaryPromptEn: settings.summaryPromptEn ?? defaultSummaryPromptEn,
       summaryPrompt: settings.summaryPrompt, // keep legacy for other consumers
+      backendUrl: settings.backendUrl || '',
+      allowClientOpenAI: settings.allowClientOpenAI ?? false,
     };
     setCurrentSettings(migrated);
   }, [settings]);
@@ -78,6 +82,19 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, settin
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="backend-url" className="text-right">
+              Backend URL
+            </Label>
+            <Input
+              id="backend-url"
+              type="text"
+              value={currentSettings.backendUrl || ''}
+              onChange={(e) => setCurrentSettings({ ...currentSettings, backendUrl: e.target.value })}
+              className="col-span-3"
+              placeholder="https://your-api.example.com"
+            />
+          </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="api-key" className="text-right">
               {t('settings.apiKey')}

@@ -10,6 +10,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Download, Calendar, FileText } from 'lucide-react';
 import { exportToJson, exportToIcs, downloadFile, JournalEntryForExport } from '@/utils/export-utils';
 import { shareContent } from '@/utils/native-share';
@@ -24,12 +25,16 @@ interface ExportDialogProps {
 
 const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, entries }) => {
   const [isExporting, setIsExporting] = useState(false);
+  const [includeSensitive, setIncludeSensitive] = useState(false);
   const { t, lang } = useI18n();
 
   const handleExportJson = () => {
     setIsExporting(true);
     try {
-      const jsonData = exportToJson(entries);
+      const data = includeSensitive
+        ? entries
+        : entries.map(e => ({ date: e.date, content: '', rating: e.rating }));
+      const jsonData = exportToJson(data as any);
       const filename = `diario-psicologico-${format(new Date(), 'yyyy-MM-dd')}.json`;
       // Try native share first (Android/iOS); fallback to browser download
       shareContent(jsonData, filename, 'application/json').then(shared => {
@@ -46,7 +51,10 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, entries })
   const handleExportIcs = async () => {
     setIsExporting(true);
     try {
-      const icsData = await exportToIcs(entries, lang);
+      const safeEntries = includeSensitive
+        ? entries
+        : entries.map(e => ({ ...e, content: '', transcript: '', summary: '' }));
+      const icsData = await exportToIcs(safeEntries, lang);
       const filename = `${lang === 'en' ? 'psychological-journal' : 'diario-psicologico'}-${format(new Date(), 'yyyy-MM-dd')}.ics`;
       const mime = 'text/calendar';
       const shared = await shareContent(icsData, filename, mime);
@@ -70,6 +78,12 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, entries })
         </DialogHeader>
         
         <div className="grid gap-4 py-4">
+          <div className="flex items-center space-x-2">
+            <Checkbox id="include-sensitive" checked={includeSensitive} onCheckedChange={(v) => setIncludeSensitive(Boolean(v))} />
+            <label htmlFor="include-sensitive" className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Includi contenuti/testi sensibili in export
+            </label>
+          </div>
           <div className="flex flex-col gap-2">
             <Button 
               onClick={handleExportJson} 
