@@ -1,15 +1,15 @@
 plugins {
-  id 'com.android.application' version '8.2.1'
+  id 'com.android.application' version '8.7.2'
 }
 
 android {
   namespace 'com.audiodiary.app'
-  compileSdk 34
+  compileSdk 35
 
   defaultConfig {
     applicationId 'com.audiodiary.app'
-    minSdkVersion 22
-    targetSdkVersion 34
+    minSdkVersion 23
+    targetSdkVersion 35
     versionCode 1
     versionName '1.0'
   }

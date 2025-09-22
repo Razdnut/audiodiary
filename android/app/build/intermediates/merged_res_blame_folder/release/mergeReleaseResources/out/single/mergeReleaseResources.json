@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.audiodiary.app-release-25:/xml_config.xml.flat",
+        "source": "com.audiodiary.app-main-26:/xml/config.xml"
+    },
+    {
+        "merged": "com.audiodiary.app-release-25:/xml_file_paths.xml.flat",
+        "source": "com.audiodiary.app-main-26:/xml/file_paths.xml"
+    }
+]
