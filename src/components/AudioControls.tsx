@@ -3,7 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Mic, Square, FileText, Sparkles, Loader2, Trash2 } from 'lucide-react';
+import { Mic, Square, FileText, Sparkles, Loader2, Trash2, Pause, Play } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Settings } from './SettingsDialog';
 import { transcribeAudio, summarizeText } from '@/services/openai';
@@ -36,6 +36,8 @@ const AudioControls: React.FC<AudioControlsProps> = ({
   const { t, lang } = useI18n();
   const [isRecording, setIsRecording] = useState(false);
   const [isLoading, setIsLoading] = useState<'transcribe' | 'summarize' | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const [canPause, setCanPause] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -56,16 +58,30 @@ const AudioControls: React.FC<AudioControlsProps> = ({
   const handleToggleRecording = async () => {
     // On native (Android/iOS) prefer the file-capture fallback to avoid WebView getUserMedia quirks
     if (!isRecording && Capacitor.isNativePlatform()) {
+      setIsPaused(false);
+      setCanPause(false);
       startFallbackFileCapture();
       return;
     }
 
     if (isRecording) {
+      const recorder = mediaRecorderRef.current;
+      if (recorder && recorder.state === 'paused') {
+        try {
+          recorder.resume();
+        } catch (resumeError) {
+          console.warn('Failed to resume recorder before stopping', resumeError);
+        }
+      }
       mediaRecorderRef.current?.stop();
       setIsRecording(false);
+      setIsPaused(false);
+      setCanPause(false);
     } else {
       if (!isMediaRecorderSupported) {
         // WebView/device doesn't support MediaRecorder → fallback to native file capture
+        setIsPaused(false);
+        setCanPause(false);
         startFallbackFileCapture();
         return;
       }
@@ -89,6 +105,12 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         mediaRecorderRef.current = new MediaRecorder(stream, options);
         audioChunksRef.current = [];
 
+        const supportsPause =
+          typeof mediaRecorderRef.current.pause === 'function' &&
+          typeof mediaRecorderRef.current.resume === 'function';
+        setCanPause(supportsPause);
+        setIsPaused(false);
+
         mediaRecorderRef.current.ondataavailable = (event) => {
           if (event.data && event.data.size > 0) {
             audioChunksRef.current.push(event.data);
@@ -103,6 +125,18 @@ const AudioControls: React.FC<AudioControlsProps> = ({
           const audioUrl = URL.createObjectURL(audioBlob);
           onUpdate({ audioUrl, audioFile: newAudioFile, transcript: undefined, summary: undefined });
           stream.getTracks().forEach(track => track.stop()); // Stop microphone access
+          setIsRecording(false);
+          setIsPaused(false);
+          setCanPause(false);
+          mediaRecorderRef.current = null;
+        };
+
+        mediaRecorderRef.current.onpause = () => {
+          setIsPaused(true);
+        };
+
+        mediaRecorderRef.current.onresume = () => {
+          setIsPaused(false);
         };
 
         mediaRecorderRef.current.start();
@@ -114,11 +148,33 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         console.warn('getUserMedia/MediaRecorder error:', name, err);
         const shouldFallback = Capacitor.isNativePlatform() || name === 'NotAllowedError' || name === 'NotFoundError' || name === 'NotSupportedError';
         if (shouldFallback) {
+          setIsPaused(false);
+          setCanPause(false);
           startFallbackFileCapture();
         } else {
           showError(t('audio.micDenied'));
         }
+        setIsRecording(false);
+        setIsPaused(false);
+        setCanPause(false);
       }
+    }
+  };
+
+  const handlePauseResume = () => {
+    const recorder = mediaRecorderRef.current;
+    if (!recorder || !canPause) {
+      return;
+    }
+
+    try {
+      if (recorder.state === 'paused') {
+        recorder.resume();
+      } else if (recorder.state === 'recording') {
+        recorder.pause();
+      }
+    } catch (error) {
+      console.error('Failed to toggle recorder pause state', error);
     }
   };
 
@@ -132,6 +188,9 @@ const AudioControls: React.FC<AudioControlsProps> = ({
       console.error('Failed to load selected audio file', err);
       showError(t('audio.micDenied'));
     } finally {
+      setIsRecording(false);
+      setIsPaused(false);
+      setCanPause(false);
       // reset input so selecting the same file again triggers change
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
@@ -185,6 +244,9 @@ const AudioControls: React.FC<AudioControlsProps> = ({
     if (audioUrl && audioUrl.startsWith('blob:')) {
       try { URL.revokeObjectURL(audioUrl); } catch {}
     }
+    setIsPaused(false);
+    setCanPause(false);
+    setIsRecording(false);
     onUpdate({ audioUrl: undefined, transcript: undefined, summary: undefined, audioFile: undefined });
   };
 
@@ -203,12 +265,23 @@ const AudioControls: React.FC<AudioControlsProps> = ({
           className="hidden"
           onChange={handleFileSelected}
         />
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
           <Button onClick={handleToggleRecording} disabled={disabled || isLoading !== null} variant={isRecording ? "destructive" : "outline"}>
             {isRecording ? (
               <><Square className="mr-2 h-4 w-4" /> {t('audio.stop')}</>
             ) : (
               <><Mic className="mr-2 h-4 w-4" /> {t('audio.record')}</>
+            )}
+          </Button>
+          <Button
+            onClick={handlePauseResume}
+            disabled={!isRecording || !canPause || isLoading !== null || disabled}
+            variant={isPaused ? "default" : "secondary"}
+          >
+            {isPaused ? (
+              <><Play className="mr-2 h-4 w-4" /> {t('audio.resume')}</>
+            ) : (
+              <><Pause className="mr-2 h-4 w-4" /> {t('audio.pause')}</>
             )}
           </Button>
           <Button onClick={handleTranscribe} disabled={!audioFile || isLoading !== null || disabled}>
