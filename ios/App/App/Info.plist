@@ -1,11 +1,9 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-        <string>jade-griffin-dive</string>
+    <string>jade-griffin-dive</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -45,5 +43,25 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<!--
+		Added public key pinning using NSAppTransportSecurity and NSPinnedDomains.
+		Replace "example.com" with your production domain, and "base64-sha256-hash" with your actual key pin SHA-256 hash.
+		You can add multiple domains or hashes as needed.
+	-->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSPinnedDomains</key>
+		<dict>
+			<key>example.com</key>
+			<dict>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+				<key>NSPublicKeyHashes</key>
+				<array>
+					<string>base64-sha256-hash</string>
+				</array>
+			</dict>
+		</dict>
+	</dict>
 </dict>
 </plist>
