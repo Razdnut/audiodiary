@@ -1,6 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -37,10 +35,73 @@ interface JournalEntry {
   createdAt?: string;
 }
 
+const JOURNAL_ENTRIES_STORAGE_KEY = 'journal-entries';
+const JOURNAL_SETTINGS_STORAGE_KEY = 'journal-settings';
+const ONBOARDING_STORAGE_KEY = 'journal-onboarding-complete';
+
+const toJournalEntry = (dateKey: string, raw: unknown): JournalEntry => {
+  if (raw && typeof raw === 'object') {
+    const candidate = raw as Partial<JournalEntry>;
+    return {
+      date: typeof candidate.date === 'string' ? candidate.date : dateKey,
+      content: typeof candidate.content === 'string' ? candidate.content : '',
+      rating: typeof candidate.rating === 'number' ? candidate.rating : 0,
+      audioUrl: typeof candidate.audioUrl === 'string' ? candidate.audioUrl : undefined,
+      transcript: typeof candidate.transcript === 'string' ? candidate.transcript : undefined,
+      summary: typeof candidate.summary === 'string' ? candidate.summary : undefined,
+      createdAt:
+        typeof candidate.createdAt === 'string'
+          ? candidate.createdAt
+          : new Date(`${dateKey}T00:00:00`).toISOString(),
+    };
+  }
+
+  return {
+    date: dateKey,
+    content: '',
+    rating: 0,
+    createdAt: new Date(`${dateKey}T00:00:00`).toISOString(),
+  };
+};
+
+const persistEntries = (data: Record<string, JournalEntry[]>) => {
+  try {
+    localStorage.setItem(JOURNAL_ENTRIES_STORAGE_KEY, JSON.stringify(data));
+  } catch (error) {
+    console.error('Failed to persist journal entries', error);
+  }
+};
+
+const persistSettings = (data: Settings) => {
+  try {
+    localStorage.setItem(JOURNAL_SETTINGS_STORAGE_KEY, JSON.stringify(data));
+  } catch (error) {
+    console.error('Failed to persist settings', error);
+  }
+};
+
+const markOnboardingComplete = () => {
+  try {
+    localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
+  } catch (error) {
+    console.error('Failed to persist onboarding completion flag', error);
+  }
+};
+
+const revokeBlobUrl = (url?: string) => {
+  if (url && url.startsWith('blob:')) {
+    try {
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.warn('Failed to revoke blob URL', error);
+    }
+  }
+};
+
 const DailyJournal = () => {
   const { t, lang } = useI18n();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [entries, setEntries] = useState<{ [key: string]: JournalEntry[] }>({});
+  const [entries, setEntries] = useState<Record<string, JournalEntry[]>>({});
   const [selectedEntryIndex, setSelectedEntryIndex] = useState<number>(0);
   const [currentContent, setCurrentContent] = useState('');
   const [currentRating, setCurrentRating] = useState(0);
@@ -63,54 +124,50 @@ const DailyJournal = () => {
     summaryPromptEn: defaultSummaryPromptEn,
     summaryPrompt: defaultSummaryPromptIt,
   });
-  const onboardingStorageKey = 'journal-onboarding-complete';
 
   useEffect(() => {
     try {
-      const savedEntries = localStorage.getItem('journal-entries');
+      const savedEntries = localStorage.getItem(JOURNAL_ENTRIES_STORAGE_KEY);
       if (savedEntries) {
-        const parsed = JSON.parse(savedEntries);
-        const migrated: { [key: string]: JournalEntry[] } = {};
-        if (parsed && typeof parsed === 'object') {
-          for (const [k, v] of Object.entries(parsed)) {
-            if (Array.isArray(v)) {
-              migrated[k] = v as JournalEntry[];
-            } else if (v && typeof v === 'object') {
-              const e = v as any;
-              migrated[k] = [
-                {
-                  date: e.date || k,
-                  content: e.content || '',
-                  rating: typeof e.rating === 'number' ? e.rating : 0,
-                  audioUrl: e.audioUrl,
-                  transcript: e.transcript,
-                  summary: e.summary,
-                  createdAt: e.createdAt || new Date(k + 'T00:00:00').toISOString(),
-                },
-              ];
+        const parsedEntries = JSON.parse(savedEntries) as unknown;
+        if (parsedEntries && typeof parsedEntries === 'object') {
+          const migrated: Record<string, JournalEntry[]> = {};
+          Object.entries(parsedEntries as Record<string, unknown>).forEach(([dateKey, value]) => {
+            if (Array.isArray(value)) {
+              migrated[dateKey] = value.map((item) => toJournalEntry(dateKey, item));
+            } else {
+              migrated[dateKey] = [toJournalEntry(dateKey, value)];
             }
-          }
+          });
+          setEntries(migrated);
         }
-        setEntries(migrated);
       }
 
-      const savedSettings = localStorage.getItem('journal-settings');
+      const savedSettings = localStorage.getItem(JOURNAL_SETTINGS_STORAGE_KEY);
       if (savedSettings) {
-        const parsed = JSON.parse(savedSettings);
+        const parsedSettings = JSON.parse(savedSettings) as Partial<Settings> & { summaryPrompt?: string };
         setSettings({
-          apiKey: parsed.apiKey || '',
-          transcriptionModel: parsed.transcriptionModel || 'whisper-1',
-          summaryModel: parsed.summaryModel || 'gpt-4o-mini',
+          apiKey: typeof parsedSettings.apiKey === 'string' ? parsedSettings.apiKey : '',
+          transcriptionModel: typeof parsedSettings.transcriptionModel === 'string'
+            ? parsedSettings.transcriptionModel
+            : 'whisper-1',
+          summaryModel: typeof parsedSettings.summaryModel === 'string'
+            ? parsedSettings.summaryModel
+            : 'gpt-4o-mini',
           summaryPromptIt:
-            parsed.summaryPromptIt ||
-            parsed.summaryPrompt ||
-            defaultSummaryPromptIt,
+            typeof parsedSettings.summaryPromptIt === 'string'
+              ? parsedSettings.summaryPromptIt
+              : typeof parsedSettings.summaryPrompt === 'string'
+                ? parsedSettings.summaryPrompt
+                : defaultSummaryPromptIt,
           summaryPromptEn:
-            parsed.summaryPromptEn ||
-            defaultSummaryPromptEn,
+            typeof parsedSettings.summaryPromptEn === 'string'
+              ? parsedSettings.summaryPromptEn
+              : defaultSummaryPromptEn,
           summaryPrompt:
-            parsed.summaryPrompt ||
-            defaultSummaryPromptIt,
+            typeof parsedSettings.summaryPrompt === 'string'
+              ? parsedSettings.summaryPrompt
+              : defaultSummaryPromptIt,
         });
       }
     } catch (error) {
@@ -122,23 +179,31 @@ const DailyJournal = () => {
 
   // Keep legacy summaryPrompt synchronized with the current language
   useEffect(() => {
-    const target =
-      lang === 'en'
-        ? (settings.summaryPromptEn || defaultSummaryPromptEn)
-        : (settings.summaryPromptIt || defaultSummaryPromptIt);
-    if (settings.summaryPrompt !== target) {
-      const synced = { ...settings, summaryPrompt: target };
-      setSettings(synced);
-      try { localStorage.setItem('journal-settings', JSON.stringify(synced)); } catch {}
-    }
-  }, [lang, settings.summaryPromptEn, settings.summaryPromptIt]);
+    setSettings((prev) => {
+      const target =
+        lang === 'en'
+          ? prev.summaryPromptEn || defaultSummaryPromptEn
+          : prev.summaryPromptIt || defaultSummaryPromptIt;
+      if (prev.summaryPrompt === target) {
+        return prev;
+      }
+      const updated: Settings = {
+        ...prev,
+        summaryPrompt: target,
+      };
+      persistSettings(updated);
+      return updated;
+    });
+  }, [lang]);
 
   useEffect(() => {
     if (!settingsInitialized || onboardingTriggeredRef.current) return;
     let completed = false;
     try {
-      completed = localStorage.getItem(onboardingStorageKey) === 'true';
-    } catch {}
+      completed = localStorage.getItem(ONBOARDING_STORAGE_KEY) === 'true';
+    } catch (error) {
+      console.warn('Failed to read onboarding completion flag', error);
+    }
     if (!completed && (!settings.apiKey || settings.apiKey.trim().length === 0)) {
       setIsOnboardingOpen(true);
       onboardingTriggeredRef.current = true;
@@ -190,42 +255,38 @@ const DailyJournal = () => {
     }
     const updatedEntries = { ...entries, [dateKey]: dayEntries };
     // Reflect fallback in UI first for immediacy
-    if (contentToSave !== currentContent) { setCurrentContent(contentToSave); setContentAutoFilled(false); }
-    setEntries(updatedEntries);
-    
-    try {
-      localStorage.setItem('journal-entries', JSON.stringify(updatedEntries));
-    } catch (error) {
-      console.error("Failed to save entry to local storage", error);
+    if (contentToSave !== currentContent) {
+      setCurrentContent(contentToSave);
+      setContentAutoFilled(false);
     }
+    setEntries(updatedEntries);
+    persistEntries(updatedEntries);
   };
 
   const handleDeleteAllAudio = () => {
     try {
-      const updated: { [key: string]: JournalEntry[] } = {};
+      const updated: Record<string, JournalEntry[]> = {};
       let removedCount = 0;
-      for (const [dateKey, arr] of Object.entries(entries)) {
-        const newArr: JournalEntry[] = (arr || []).map((entry) => {
-          if (entry.audioUrl && entry.audioUrl.startsWith('blob:')) {
-            try { URL.revokeObjectURL(entry.audioUrl); } catch {}
+      Object.entries(entries).forEach(([dateKey, arr]) => {
+        const sanitizedEntries = (arr || []).map((entry) => {
+          if (entry.audioUrl) {
+            revokeBlobUrl(entry.audioUrl);
+            removedCount += 1;
           }
-          const hadAudio = Boolean(entry.audioUrl);
-          if (hadAudio) removedCount++;
           return { ...entry, audioUrl: undefined, transcript: undefined, summary: undefined };
         });
-        updated[dateKey] = newArr;
-      }
-      setEntries(updated);
-      localStorage.setItem('journal-entries', JSON.stringify(updated));
+        updated[dateKey] = sanitizedEntries;
+      });
 
-      // Clear current selection if it had audio
-      if (currentAudioUrl && currentAudioUrl.startsWith('blob:')) {
-        try { URL.revokeObjectURL(currentAudioUrl); } catch {}
-      }
+      setEntries(updated);
+      persistEntries(updated);
+
+      revokeBlobUrl(currentAudioUrl);
       setCurrentAudioUrl(undefined);
       setCurrentTranscript(undefined);
       setCurrentSummary(undefined);
-                          setContentAutoFilled(false);
+      setContentAutoFilled(false);
+
       showSuccess(
         removedCount > 0
           ? `Eliminati audio da ${removedCount} voci. Trascrizioni e sintesi rimosse.`
@@ -239,8 +300,8 @@ const DailyJournal = () => {
 
   const handleAudioUpdate = (updates: { audioUrl?: string; transcript?: string; summary?: string; audioFile?: File }) => {
     if ('audioUrl' in updates) {
-      if (currentAudioUrl && updates.audioUrl === undefined && currentAudioUrl.startsWith('blob:')) {
-        try { URL.revokeObjectURL(currentAudioUrl); } catch {}
+      if (currentAudioUrl && updates.audioUrl === undefined) {
+        revokeBlobUrl(currentAudioUrl);
       }
       setCurrentAudioUrl(updates.audioUrl);
 
@@ -257,9 +318,7 @@ const DailyJournal = () => {
           };
           const updatedEntries = { ...entries, [dateKey]: dayEntries };
           setEntries(updatedEntries);
-          try { localStorage.setItem('journal-entries', JSON.stringify(updatedEntries)); } catch (error) {
-            console.error('Failed to persist audio deletion', error);
-          }
+          persistEntries(updatedEntries);
         }
       }
     }
@@ -279,11 +338,7 @@ const DailyJournal = () => {
 
   const handleSaveSettings = (newSettings: Settings) => {
     setSettings(newSettings);
-    try {
-      localStorage.setItem('journal-settings', JSON.stringify(newSettings));
-    } catch (error) {
-      console.error("Failed to save settings to local storage", error);
-    }
+    persistSettings(newSettings);
   };
 
   const handleOnboardingOpenChange = (open: boolean) => {
@@ -293,20 +348,46 @@ const DailyJournal = () => {
 
   const handleCompleteOnboarding = (newSettings: Settings) => {
     handleSaveSettings(newSettings);
-    try { localStorage.setItem(onboardingStorageKey, 'true'); } catch {}
+    markOnboardingComplete();
     setIsOnboardingOpen(false);
     showSuccess(t('onboarding.completed'));
   };
 
-  const daysWithEntries = Object.entries(entries)
-    .filter(([_, arr]) => Array.isArray(arr) && arr.length > 0)
-    .map(([dateStr]) => new Date(dateStr + 'T00:00:00'));
-  const allEntries: JournalEntry[] = Object.values(entries).flatMap(arr => (arr || []));
+  const daysWithEntries = useMemo(
+    () =>
+      Object.entries(entries)
+        .filter(([, arr]) => Array.isArray(arr) && arr.length > 0)
+        .map(([dateStr]) => new Date(`${dateStr}T00:00:00`)),
+    [entries],
+  );
+
+  const allEntries: JournalEntry[] = useMemo(
+    () => Object.values(entries).flatMap((arr) => (Array.isArray(arr) ? arr : [])),
+    [entries],
+  );
+
   const totalEntries = allEntries.length;
   const averageRating = totalEntries > 0
-    ? (allEntries.reduce((sum, e) => sum + (e.rating || 0), 0) / totalEntries).toFixed(1)
+    ? (allEntries.reduce((sum, entry) => sum + (entry.rating || 0), 0) / totalEntries).toFixed(1)
     : '0.0';
-  const audioRecordings = allEntries.filter((entry) => !!entry.audioUrl).length;
+  const audioRecordings = useMemo(
+    () => allEntries.filter((entry) => Boolean(entry.audioUrl)).length,
+    [allEntries],
+  );
+  const exportEntries = useMemo<JournalEntryForExport[]>(
+    () =>
+      Object.values(entries)
+        .flatMap((arr) => (Array.isArray(arr) ? arr : []))
+        .map(({ date, content, rating, transcript, summary, audioUrl }) => ({
+          date,
+          content,
+          rating,
+          transcript,
+          summary,
+          audioUrl,
+        })),
+    [entries],
+  );
 
   return (
     <>
@@ -375,7 +456,12 @@ const DailyJournal = () => {
                       <div className="flex-1">
                         <Select
                           value={String(selectedEntryIndex)}
-                          onValueChange={(val) => setSelectedEntryIndex(parseInt(val))}
+                          onValueChange={(value) => {
+                            const parsedIndex = Number.parseInt(value, 10);
+                            if (!Number.isNaN(parsedIndex)) {
+                              setSelectedEntryIndex(parsedIndex);
+                            }
+                          }}
                           disabled={!selectedDate}
                         >
                           <SelectTrigger>
@@ -412,7 +498,7 @@ const DailyJournal = () => {
                           setCurrentTranscript(undefined);
                           setCurrentSummary(undefined);
                           setContentAutoFilled(false);
-                          try { localStorage.setItem('journal-entries', JSON.stringify(updatedEntries)); } catch {}
+                          persistEntries(updatedEntries);
                         }}
                         disabled={!selectedDate}
                       >
@@ -428,22 +514,20 @@ const DailyJournal = () => {
                           const confirmDelete = window.confirm(t('daily.deleteNote.confirm'));
                           if (!confirmDelete) return;
                           const toDelete = dayEntries[selectedEntryIndex];
-                          if (toDelete?.audioUrl && toDelete.audioUrl.startsWith('blob:')) {
-                            try { URL.revokeObjectURL(toDelete.audioUrl); } catch {}
-                          }
+                          revokeBlobUrl(toDelete?.audioUrl);
                           dayEntries.splice(selectedEntryIndex, 1);
                           const newIndex = Math.max(0, Math.min(selectedEntryIndex, dayEntries.length - 1));
                           const updatedEntries = { ...entries, [dateKey]: dayEntries };
                           setEntries(updatedEntries);
                           setSelectedEntryIndex(newIndex);
-                          try { localStorage.setItem('journal-entries', JSON.stringify(updatedEntries)); } catch {}
+                          persistEntries(updatedEntries);
                           if (dayEntries.length === 0) {
                             setCurrentContent('');
                             setCurrentRating(0);
                             setCurrentAudioUrl(undefined);
                             setCurrentTranscript(undefined);
                             setCurrentSummary(undefined);
-                          setContentAutoFilled(false);
+                            setContentAutoFilled(false);
                           }
                           showSuccess(t('daily.deleteNote'));
                         }}
@@ -474,9 +558,7 @@ const DailyJournal = () => {
                         variant="outline"
                         size="lg"
                         onClick={() => {
-                          if (currentAudioUrl && currentAudioUrl.startsWith('blob:')) {
-                            try { URL.revokeObjectURL(currentAudioUrl); } catch {}
-                          }
+                          revokeBlobUrl(currentAudioUrl);
                           setCurrentContent('');
                           setCurrentRating(0);
                           setCurrentAudioUrl(undefined);
@@ -535,19 +617,17 @@ const DailyJournal = () => {
                 >
                   {t('daily.saveEntry')}
                 </Button>
-                <Button 
+                <Button
                   variant="outline"
                   size="lg"
                   onClick={() => {
-                    if (currentAudioUrl && currentAudioUrl.startsWith('blob:')) {
-                      try { URL.revokeObjectURL(currentAudioUrl); } catch {}
-                    }
+                    revokeBlobUrl(currentAudioUrl);
                     setCurrentContent('');
                     setCurrentRating(0);
                     setCurrentAudioUrl(undefined);
                     setCurrentTranscript(undefined);
                     setCurrentSummary(undefined);
-                          setContentAutoFilled(false);
+                    setContentAutoFilled(false);
                   }}
                   disabled={!selectedDate}
                 >
@@ -570,7 +650,7 @@ const DailyJournal = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">{t('stats.recordings')}</span>
-                    <span className="font-semibold">{allEntries.filter(e => e.audioUrl).length}</span>
+                    <span className="font-semibold">{audioRecordings}</span>
                   </div>
                   <div className="pt-2">
                     <Button
@@ -580,12 +660,12 @@ const DailyJournal = () => {
                         const confirmed = window.confirm(t('stats.resetAllRatings.confirm'));
                         if (!confirmed) return;
                         try {
-                          const updated: { [key: string]: JournalEntry[] } = {};
-                          for (const [dateKey, arr] of Object.entries(entries)) {
-                            updated[dateKey] = (arr || []).map(e => ({ ...e, rating: 0 }));
-                          }
+                          const updated: Record<string, JournalEntry[]> = {};
+                          Object.entries(entries).forEach(([dateKey, arr]) => {
+                            updated[dateKey] = (arr || []).map((entry) => ({ ...entry, rating: 0 }));
+                          });
                           setEntries(updated);
-                          localStorage.setItem('journal-entries', JSON.stringify(updated));
+                          persistEntries(updated);
                           setCurrentRating(0);
                           showSuccess(t('stats.resetAllRatings.success'));
                         } catch (error) {
@@ -616,16 +696,7 @@ const DailyJournal = () => {
       <ExportDialog
         isOpen={isExportOpen}
         onClose={() => setIsExportOpen(false)}
-        entries={Object.values(entries)
-          .flat()
-          .map(({ date, content, rating, transcript, summary, audioUrl }) => ({
-            date,
-            content,
-            rating,
-            transcript,
-            summary,
-            audioUrl,
-          }) as JournalEntryForExport)}
+        entries={exportEntries}
       />
     </>
   );
