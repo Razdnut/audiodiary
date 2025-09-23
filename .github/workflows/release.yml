@@ -10,7 +10,6 @@ permissions:
 jobs:
   release:
     name: Build & Publish Release
-
     concurrency:
       group: release-${{ github.ref }}
       cancel-in-progress: false
@@ -66,12 +65,6 @@ jobs:
           set -euo pipefail
           NOTES_FILE="release-notes.md"
 
-      - name: Generate release notes
-        run: |
-          NOTES_FILE="release-notes.md"
-          VERSION="${{ steps.version.outputs.version }}"
-          PREVIOUS="${{ steps.version.outputs.previous }}"
-
 
           {
             echo "## 🚀 Novità della release ${VERSION}"
@@ -84,6 +77,7 @@ jobs:
             CHANGES=$(git log "${PREVIOUS_VERSION}"..HEAD --pretty=format:'- %s' --no-merges || true)
           else
             CHANGES=$(git log --pretty=format:'- %s' --no-merges || true)
+
 
           fi
 
@@ -104,6 +98,7 @@ jobs:
             echo
             echo "✨ Preparati a vivere un'esperienza audio ancora più coinvolgente!"
           } >> "$NOTES_FILE"
+
 
 
           cat "$NOTES_FILE" >> "$GITHUB_STEP_SUMMARY"
@@ -132,7 +127,6 @@ jobs:
             ${{ env.IMAGE_NAME }}:${{ env.VERSION }}
 
 
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -157,6 +151,20 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+
+
+      - name: Configure Android SDK path
+        run: |
+          set -euo pipefail
+          SDK_PATH="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          if [ -z "$SDK_PATH" ]; then
+            echo "::error::Percorso dell'SDK Android non disponibile." >&2
+            exit 1
+          fi
+          cat <<EOF > android/local.properties
+sdk.dir=${SDK_PATH}
+EOF
+
 
       - name: Ensure Android platform is added
         run: |
@@ -184,14 +192,10 @@ jobs:
           cd android
           ./gradlew assembleRelease --no-daemon --stacktrace
 
-
       - name: Prepare APK artifact
         run: |
           mkdir -p dist
-
           cp android/app/build/outputs/apk/release/app-release-unsigned.apk "dist/audiodiary-${VERSION}.apk"
-
-
 
       - name: Create GitHub Release and upload assets
         uses: softprops/action-gh-release@v2
