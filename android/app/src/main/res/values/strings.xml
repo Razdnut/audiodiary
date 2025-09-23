@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">jade-griffin-dive</string>
-    <string name="title_activity_main">jade-griffin-dive</string>
+    <string name="app_name">Audio Diary</string>
+    <string name="title_activity_main">Audio Diary</string>
     <string name="package_name">com.example.jadegriffindive</string>
     <string name="custom_url_scheme">com.example.jadegriffindive</string>
 </resources>
