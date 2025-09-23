@@ -57,14 +57,6 @@ const AudioControls: React.FC<AudioControlsProps> = ({
   };
 
   const handleToggleRecording = async () => {
-    // On native (Android/iOS) prefer the file-capture fallback to avoid WebView getUserMedia quirks
-    if (!isRecording && Capacitor.isNativePlatform()) {
-      setIsPaused(false);
-      setCanPause(false);
-      startFallbackFileCapture();
-      return;
-    }
-
     if (isRecording) {
       const recorder = mediaRecorderRef.current;
       if (recorder && recorder.state === 'paused') {
