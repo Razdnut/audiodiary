@@ -21,7 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import LanguageToggle from '@/components/LanguageToggle';
 import { useI18n } from '@/i18n/i18n';
 
 interface JournalEntry {
@@ -39,7 +38,6 @@ const DailyJournal = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [entries, setEntries] = useState<{ [key: string]: JournalEntry[] }>({});
   const [selectedEntryIndex, setSelectedEntryIndex] = useState<number>(0);
-  const [showEntryHighlights, setShowEntryHighlights] = useState(false);
   const [currentContent, setCurrentContent] = useState('');
   const [currentRating, setCurrentRating] = useState(0);
   const [currentAudioUrl, setCurrentAudioUrl] = useState<string | undefined>();
@@ -313,7 +311,7 @@ const DailyJournal = () => {
                   <Calendar
                     mode="single"
                     selected={selectedDate}
-                    onSelect={(date) => { setSelectedDate(date); setShowEntryHighlights(true); }}
+                    onSelect={setSelectedDate}
                     className="p-3"
                     modifiers={{ hasEntry: daysWithEntries }}
                     modifiersClassNames={{ hasEntry: 'has-entry' }}
