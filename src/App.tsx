@@ -1,3 +1,4 @@
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +10,8 @@ import Recent from "./pages/Recent";
 import { ThemeProvider } from "./components/theme-provider";
 import { I18nProvider } from "./i18n/i18n";
 
+const SilkBackground = lazy(() => import("@/components/SilkBackground"));
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -16,16 +19,28 @@ const App = () => (
     <I18nProvider>
       <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/recent" element={<Recent />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
+          <Suspense fallback={null}>
+            <SilkBackground />
+          </Suspense>
+          <div
+            className="relative z-10 min-h-screen"
+            style={{
+              background: "hsl(var(--background) / 0.85)",
+              backdropFilter: "blur(18px)",
+              WebkitBackdropFilter: "blur(18px)",
+            }}
+          >
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/recent" element={<Recent />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </div>
         </TooltipProvider>
       </ThemeProvider>
     </I18nProvider>
