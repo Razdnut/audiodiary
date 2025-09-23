@@ -98,6 +98,7 @@ const translations: Translations = {
     'recent.title': 'Riepilogo ultimi 30 giorni',
     'recent.description': 'Le note create negli ultimi 30 giorni.',
     'recent.empty': 'Nessuna nota negli ultimi 30 giorni.',
+    'recent.selectPrompt': 'Seleziona un giorno per vedere i dettagli della nota.',
 
     'onboarding.title': 'Configura la tua esperienza',
     'onboarding.description': 'Prima di iniziare, impostiamo i dati necessari per trascrivere e sintetizzare le note.',
@@ -209,6 +210,7 @@ const translations: Translations = {
     'recent.title': 'Last 30 Days',
     'recent.description': 'Notes created in the last 30 days.',
     'recent.empty': 'No notes in the last 30 days.',
+    'recent.selectPrompt': 'Select a day to view the note details.',
 
     'onboarding.title': 'Set up your experience',
     'onboarding.description': 'Let’s prepare the essentials to transcribe and summarise your voice notes.',
