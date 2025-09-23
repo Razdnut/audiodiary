@@ -31,13 +31,20 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, entries })
   const handleExportJson = () => {
     setIsExporting(true);
     try {
-      const data = includeSensitive
+      const data: JournalEntryForExport[] = includeSensitive
         ? entries
-        : entries.map(e => ({ date: e.date, content: '', rating: e.rating }));
-      const jsonData = exportToJson(data as any);
+        : entries.map((entry) => ({
+          date: entry.date,
+          content: '',
+          rating: entry.rating,
+          transcript: undefined,
+          summary: undefined,
+          audioUrl: undefined,
+        }));
+      const jsonData = exportToJson(data);
       const filename = `diario-psicologico-${format(new Date(), 'yyyy-MM-dd')}.json`;
       // Try native share first (Android/iOS); fallback to browser download
-      shareContent(jsonData, filename, 'application/json').then(shared => {
+      shareContent(jsonData, filename, 'application/json').then((shared) => {
         if (!shared) downloadFile(jsonData, filename, 'application/json');
       });
     } catch (error) {
@@ -51,9 +58,14 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, entries })
   const handleExportIcs = async () => {
     setIsExporting(true);
     try {
-      const safeEntries = includeSensitive
+      const safeEntries: JournalEntryForExport[] = includeSensitive
         ? entries
-        : entries.map(e => ({ ...e, content: '', transcript: '', summary: '' }));
+        : entries.map((entry) => ({
+            ...entry,
+            content: '',
+            transcript: '',
+            summary: '',
+          }));
       const icsData = await exportToIcs(safeEntries, lang);
       const filename = `${lang === 'en' ? 'psychological-journal' : 'diario-psicologico'}-${format(new Date(), 'yyyy-MM-dd')}.ics`;
       const mime = 'text/calendar';

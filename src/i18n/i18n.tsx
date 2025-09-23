@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { it as dfIt, enUS as dfEnUS } from 'date-fns/locale';
 import type { Locale } from 'date-fns';
 
@@ -250,15 +250,21 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const saved = localStorage.getItem(storageKey) as Lang | null;
       if (saved === 'en' || saved === 'it') setLangState(saved);
-    } catch {}
+    } catch (error) {
+      console.warn('Failed to restore saved language', error);
+    }
   }, []);
 
-  const setLang = (l: Lang) => {
+  const setLang = useCallback((l: Lang) => {
     setLangState(l);
-    try { localStorage.setItem(storageKey, l); } catch {}
-  };
+    try {
+      localStorage.setItem(storageKey, l);
+    } catch (error) {
+      console.warn('Failed to persist language', error);
+    }
+  }, []);
 
-  const t = (key: string, vars?: Record<string, string | number>) => {
+  const t = useCallback((key: string, vars?: Record<string, string | number>) => {
     const dict = translations[lang] || translations.it;
     let str = dict[key] || key;
     if (vars) {
@@ -267,11 +273,14 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
     }
     return str;
-  };
+  }, [lang]);
 
   const dateLocale = useMemo(() => (lang === 'en' ? dfEnUS : dfIt), [lang]);
 
-  const value: I18nContextValue = useMemo(() => ({ lang, setLang, t, dateLocale }), [lang, dateLocale]);
+  const value: I18nContextValue = useMemo(
+    () => ({ lang, setLang, t, dateLocale }),
+    [lang, dateLocale, setLang, t],
+  );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 };

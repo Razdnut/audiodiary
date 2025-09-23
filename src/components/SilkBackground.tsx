@@ -1,5 +1,11 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { forwardRef, useEffect, useLayoutEffect, useRef } from "react";
+import {
+  createElement,
+  forwardRef,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+} from "react";
 import { Color } from "three";
 import type { Mesh, PlaneGeometry, ShaderMaterial } from "three";
 
@@ -88,11 +94,18 @@ const SilkPlane = forwardRef<Mesh<PlaneGeometry, ShaderMaterial>, SilkPlaneProps
     }
   });
 
-  return (
-    <mesh ref={ref}>
-      <planeGeometry args={[1, 1, 1, 1]} />
-      <shaderMaterial uniforms={uniforms} vertexShader={vertexShader} fragmentShader={fragmentShader} />
-    </mesh>
+  return createElement(
+    "mesh",
+    { ref },
+    [
+      createElement("planeGeometry", { args: [1, 1, 1, 1], key: "geometry" }),
+      createElement("shaderMaterial", {
+        uniforms,
+        vertexShader,
+        fragmentShader,
+        key: "material",
+      }),
+    ],
   );
 });
 SilkPlane.displayName = "SilkPlane";
