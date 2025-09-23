@@ -1,0 +1,161 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    name: Build & Publish Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine next version
+        id: version
+        run: |
+          git fetch --tags --force
+          LAST_TAG=$(git tag -l '1.0.*' --sort=v:refname | tail -n1)
+          if [ -z "$LAST_TAG" ]; then
+            NEXT_VERSION="1.0.0"
+            PREVIOUS_TAG=""
+          else
+            PREVIOUS_TAG="$LAST_TAG"
+            PATCH="${LAST_TAG##*.}"
+            NEXT_PATCH=$((PATCH + 1))
+            NEXT_VERSION="1.0.${NEXT_PATCH}"
+          fi
+          echo "version=${NEXT_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "previous=${PREVIOUS_TAG}" >> "$GITHUB_OUTPUT"
+          REPO_LC="${GITHUB_REPOSITORY,,}"
+          echo "image=ghcr.io/${REPO_LC}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate release notes
+        run: |
+          NOTES_FILE="release-notes.md"
+          VERSION="${{ steps.version.outputs.version }}"
+          PREVIOUS="${{ steps.version.outputs.previous }}"
+
+          {
+            echo "## 🚀 Novità della release ${VERSION}"
+            echo
+            echo "Grazie per aver scelto AudioDiary! Ecco gli aggiornamenti più interessanti:" 
+          } > "$NOTES_FILE"
+
+          if [ -n "$PREVIOUS" ]; then
+            CHANGES=$(git log "$PREVIOUS"..HEAD --pretty=format:'- %s')
+          else
+            CHANGES=$(git log --pretty=format:'- %s')
+          fi
+
+          if [ -n "$CHANGES" ]; then
+            {
+              echo
+              echo "### 🔧 Miglioramenti"
+              printf '%s\n' "$CHANGES"
+            } >> "$NOTES_FILE"
+          else
+            {
+              echo
+              echo "Nessun cambiamento rispetto alla release precedente, ma abbiamo ripulito un po' il codice ✨."
+            } >> "$NOTES_FILE"
+          fi
+
+          {
+            echo
+            echo "✨ Preparati a vivere un'esperienza audio ancora più coinvolgente!"
+          } >> "$NOTES_FILE"
+
+      - name: Display release notes
+        run: cat release-notes.md
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.version.outputs.image }}:latest
+            ${{ steps.version.outputs.image }}:${{ steps.version.outputs.version }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          CI: true
+          NO_UPDATE_NOTIFIER: '1'
+
+      - name: Build web bundle
+        run: npm run build
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Ensure Android platform is added
+        run: |
+          if [ ! -d android ]; then
+            npx cap add android
+          else
+            echo "Android platform already present."
+          fi
+
+      - name: Sync Capacitor project
+        run: npx cap sync android
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('android/**/gradle-wrapper.properties', 'android/**/build.gradle*') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build debug APK
+        run: |
+          cd android
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Prepare APK artifact
+        run: |
+          mkdir -p dist
+          cp android/app/build/outputs/apk/debug/app-debug.apk "dist/audiodiary-${{ steps.version.outputs.version }}.apk"
+
+      - name: Create GitHub Release and upload assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: Audiodiary ${{ steps.version.outputs.version }}
+          body_path: release-notes.md
+          files: dist/audiodiary-${{ steps.version.outputs.version }}.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
