@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,15 +8,16 @@ import Rating from '@/components/ui/rating';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { it, enUS } from 'date-fns/locale';
-import { Settings as SettingsIcon, Download, BarChart3, FileClock } from 'lucide-react';
 import AudioControls from '@/components/AudioControls';
 import SettingsDialog, { Settings } from '@/components/SettingsDialog';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
-import { ThemeToggle } from '@/components/theme-toggle';
 import ExportDialog from '@/components/ExportDialog';
 import { showSuccess, showError } from '@/utils/toast';
 import { JournalEntryForExport } from '@/utils/export-utils';
+import { defaultSummaryPromptEn, defaultSummaryPromptIt } from '@/lib/defaultPrompts';
+import OnboardingDialog from '@/components/OnboardingDialog';
+import DockMenu from '@/components/DockMenu';
 import {
   Select,
   SelectContent,
@@ -23,7 +25,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import LanguageToggle from '@/components/LanguageToggle';
 import { useI18n } from '@/i18n/i18n';
 
 interface JournalEntry {
@@ -41,7 +42,6 @@ const DailyJournal = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [entries, setEntries] = useState<{ [key: string]: JournalEntry[] }>({});
   const [selectedEntryIndex, setSelectedEntryIndex] = useState<number>(0);
-  const [showEntryHighlights, setShowEntryHighlights] = useState(false);
   const [currentContent, setCurrentContent] = useState('');
   const [currentRating, setCurrentRating] = useState(0);
   const [currentAudioUrl, setCurrentAudioUrl] = useState<string | undefined>();
@@ -52,17 +52,18 @@ const DailyJournal = () => {
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
+  const [settingsInitialized, setSettingsInitialized] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const onboardingTriggeredRef = useRef(false);
   const [settings, setSettings] = useState<Settings>({
     apiKey: '',
     transcriptionModel: 'whisper-1',
     summaryModel: 'gpt-4o-mini',
-    summaryPromptIt:
-      'Analizza il testo fornito in e produci una pagina di diario psicologico giornaliero 📖🧠 in formato leggibile.\n\nLa pagina deve avere queste sezioni con titoli e contenuto in elenco puntato 📌 o paragrafi brevi:\n\nTitolo della giornata 🗓️\n\nRiepilogo 📝\n\nPunti principali ⭐\n\nEmozioni 💭💖😔🤯 (scegli in base al contesto)\n\nAzioni svolte ✅\n\nObiettivi futuri 🎯 (usa date in formato ISO 8601 se menzioni giorni relativi 📅)\n\nRiferimenti (libri, persone, eventi) 📚👥📅\n\nArgomentazioni interne (pro e contro) ⚖️\n\nArgomenti correlati 🔗\n\nAnalisi del tono emotivo 🎭\n\nRegole 📏:\n\nScrivi solo il testo della pagina, senza codice, senza JSON e senza spiegazioni extra.\n\nNon tralasciare dettagli su eventi relativi a persone e avvenimenti.\n\nNon dimenticare i nomi proprio di luoghi, persone.\n\nNon enfatizzare troppo gli eventi negativi ma promuovi una visione positiva e speranzosa.\n\nSe manca contenuto per una sezione, scrivi "Nessun contenuto trovato".\n\nMantieni il tono narrativo semplice e chiaro, come fosse un diario personale.\n\nNon prolungarti troppo in riflessioni psicologiche e non ipotizzare le emozioni provate ma concentrati sui fatti e su ciò che è stato detto.\n\nUsa meno di 2000 caratteri.',
-    summaryPromptEn:
-      'Analyze the provided text and produce a daily psychological journal page 📖🧠 in a readable format.\n\nThe page must have these sections with titles and content in bullet points 📌 or short paragraphs:\n\nTitle of the day 🗓️\n\nSummary 📝\n\nMain points ⭐\n\nEmotions 💭💖😔🤯 (choose based on context)\n\nActions taken ✅\n\nFuture goals 🎯 (use ISO 8601 format for dates if relative days are mentioned 📅)\n\nReferences (books, people, events) 📚👥📅\n\nInternal arguments (pros and cons) ⚖️\n\nRelated topics 🔗\n\nEmotional tone analysis 🎭\n\nRules 📏:\n\nWrite only the text of the page, without code, without JSON, and without extra explanations.\n\nDo not omit details about events related to people and occurrences.\n\nDo not forget proper names of places, people.\n\nDo not overemphasize negative events but promote a positive and hopeful vision.\n\nIf content is missing for a section, write "No content found".\n\nKeep the narrative tone simple and clear, as if it were a personal diary.\n\nDo not dwell too much on psychological reflections and do not hypothesize emotions felt but focus on the facts and what was said.\n\nUse less than 2000 characters.',
-    summaryPrompt:
-      'Analizza il testo fornito in e produci una pagina di diario psicologico giornaliero 📖🧠 in formato leggibile.\n\nLa pagina deve avere queste sezioni con titoli e contenuto in elenco puntato 📌 o paragrafi brevi:\n\nTitolo della giornata 🗓️\n\nRiepilogo 📝\n\nPunti principali ⭐\n\nEmozioni 💭💖😔🤯 (scegli in base al contesto)\n\nAzioni svolte ✅\n\nObiettivi futuri 🎯 (usa date in formato ISO 8601 se menzioni giorni relativi 📅)\n\nRiferimenti (libri, persone, eventi) 📚👥📅\n\nArgomentazioni interne (pro e contro) ⚖️\n\nArgomenti correlati 🔗\n\nAnalisi del tono emotivo 🎭\n\nRegole 📏:\n\nScrivi solo il testo della pagina, senza codice, senza JSON e senza spiegazioni extra.\n\nNon tralasciare dettagli su eventi relativi a persone e avvenimenti.\n\nNon dimenticare i nomi proprio di luoghi, persone.\n\nNon enfatizzare troppo gli eventi negativi ma promuovi una visione positiva e speranzosa.\n\nSe manca contenuto per una sezione, scrivi "Nessun contenuto trovato".\n\nMantieni il tono narrativo semplice e chiaro, come fosse un diario personale.\n\nNon prolungarti troppo in riflessioni psicologiche e non ipotizzare le emozioni provate ma concentrati sui fatti e su ciò che è stato detto.\n\nUsa meno di 2000 caratteri.',
+    summaryPromptIt: defaultSummaryPromptIt,
+    summaryPromptEn: defaultSummaryPromptEn,
+    summaryPrompt: defaultSummaryPromptIt,
   });
+  const onboardingStorageKey = 'journal-onboarding-complete';
 
   useEffect(() => {
     try {
@@ -103,36 +104,46 @@ const DailyJournal = () => {
           summaryPromptIt:
             parsed.summaryPromptIt ||
             parsed.summaryPrompt ||
-            'Analizza il testo fornito in e produci una pagina di diario psicologico giornaliero 📖🧠 in formato leggibile.\n\nLa pagina deve avere queste sezioni con titoli e contenuto in elenco puntato 📌 o paragrafi brevi:\n\nTitolo della giornata 🗓️\n\nRiepilogo 📝\n\nPunti principali ⭐\n\nEmozioni 💭💖😔🤯 (scegli in base al contesto)\n\nAzioni svolte ✅\n\nObiettivi futuri 🎯 (usa date in formato ISO 8601 se menzioni giorni relativi 📅)\n\nRiferimenti (libri, persone, eventi) 📚👥📅\n\nArgomentazioni interne (pro e contro) ⚖️\n\nArgomenti correlati 🔗\n\nAnalisi del tono emotivo 🎭\n\nRegole 📏:\n\nScrivi solo il testo della pagina, senza codice, senza JSON e senza spiegazioni extra.\n\nNon tralasciare dettagli su eventi relativi a persone e avvenimenti.\n\nNon dimenticare i nomi proprio di luoghi, persone.\n\nNon enfatizzare troppo gli eventi negativi ma promuovi una visione positiva e speranzosa.\n\nSe manca contenuto per una sezione, scrivi "Nessun contenuto trovato".\n\nMantieni il tono narrativo semplice e chiaro, come fosse un diario personale.\n\nNon prolungarti troppo in riflessioni psicologiche e non ipotizzare le emozioni provate ma concentrati sui fatti e su ciò che è stato detto.\n\nUsa meno di 2000 caratteri.',
+            defaultSummaryPromptIt,
           summaryPromptEn:
             parsed.summaryPromptEn ||
-            'Analyze the provided text and produce a daily psychological journal page 📖🧠 in a readable format.\n\nThe page must have these sections with titles and content in bullet points 📌 or short paragraphs:\n\nTitle of the day 🗓️\n\nSummary 📝\n\nMain points ⭐\n\nEmotions 💭💖😔🤯 (choose based on context)\n\nActions taken ✅\n\nFuture goals 🎯 (use ISO 8601 format for dates if relative days are mentioned 📅)\n\nReferences (books, people, events) 📚👥📅\n\nInternal arguments (pros and cons) ⚖️\n\nRelated topics 🔗\n\nEmotional tone analysis 🎭\n\nRules 📏:\n\nWrite only the text of the page, without code, without JSON, and without extra explanations.\n\nDo not omit details about events related to people and occurrences.\n\nDo not forget proper names of places, people.\n\nDo not overemphasize negative events but promote a positive and hopeful vision.\n\nIf content is missing for a section, write "No content found".\n\nKeep the narrative tone simple and clear, as if it were a personal diary.\n\nDo not dwell too much on psychological reflections and do not hypothesize emotions felt but focus on the facts and what was said.\n\nUse less than 2000 characters.',
+            defaultSummaryPromptEn,
           summaryPrompt:
             parsed.summaryPrompt ||
-            'Analizza il testo fornito in e produci una pagina di diario psicologico giornaliero 📖🧠 in formato leggibile.\n\nLa pagina deve avere queste sezioni con titoli e contenuto in elenco puntato 📌 o paragrafi brevi:\n\nTitolo della giornata 🗓️\n\nRiepilogo 📝\n\nPunti principali ⭐\n\nEmozioni 💭💖😔🤯 (scegli in base al contesto)\n\nAzioni svolte ✅\n\nObiettivi futuri 🎯 (usa date in formato ISO 8601 se menzioni giorni relativi 📅)\n\nRiferimenti (libri, persone, eventi) 📚👥📅\n\nArgomentazioni interne (pro e contro) ⚖️\n\nArgomenti correlati 🔗\n\nAnalisi del tono emotivo 🎭\n\nRegole 📏:\n\nScrivi solo il testo della pagina, senza codice, senza JSON e senza spiegazioni extra.\n\nNon tralasciare dettagli su eventi relativi a persone e avvenimenti.\n\nNon dimenticare i nomi proprio di luoghi, persone.\n\nNon enfatizzare troppo gli eventi negativi ma promuovi una visione positiva e speranzosa.\n\nSe manca contenuto per una sezione, scrivi "Nessun contenuto trovato".\n\nMantieni il tono narrativo semplice e chiaro, come fosse un diario personale.\n\nNon prolungarti troppo in riflessioni psicologiche e non ipotizzare le emozioni provate ma concentrati sui fatti e su ciò che è stato detto.\n\nUsa meno di 2000 caratteri.',
+            defaultSummaryPromptIt,
         });
       }
     } catch (error) {
       console.error("Failed to load data from local storage", error);
+    } finally {
+      setSettingsInitialized(true);
     }
   }, []);
 
   // Keep legacy summaryPrompt synchronized with the current language
   useEffect(() => {
-    const defaultIt =
-      'Analizza il testo fornito in e produci una pagina di diario psicologico giornaliero 📖🧠 in formato leggibile.\n\nLa pagina deve avere queste sezioni con titoli e contenuto in elenco puntato 📌 o paragrafi brevi:\n\nTitolo della giornata 🗓️\n\nRiepilogo 📝\n\nPunti principali ⭐\n\nEmozioni 💭💖😔🤯 (scegli in base al contesto)\n\nAzioni svolte ✅\n\nObiettivi futuri 🎯 (usa date in formato ISO 8601 se menzioni giorni relativi 📅)\n\nRiferimenti (libri, persone, eventi) 📚👥📅\n\nArgomentazioni interne (pro e contro) ⚖️\n\nArgomenti correlati 🔗\n\nAnalisi del tono emotivo 🎭\n\nRegole 📏:\n\nScrivi solo il testo della pagina, senza codice, senza JSON e senza spiegazioni extra.\n\nNon tralasciare dettagli su eventi relativi a persone e avvenimenti.\n\nNon dimenticare i nomi proprio di luoghi, persone.\n\nNon enfatizzare troppo gli eventi negativi ma promuovi una visione positiva e speranzosa.\n\nSe manca contenuto per una sezione, scrivi "Nessun contenuto trovato".\n\nMantieni il tono narrativo semplice e chiaro, come fosse un diario personale.\n\nNon prolungarti troppo in riflessioni psicologiche e non ipotizzare le emozioni provate ma concentrati sui fatti e su ciò che è stato detto.\n\nUsa meno di 2000 caratteri.';
-    const defaultEn =
-      'Analyze the provided text and produce a daily psychological journal page 📖🧠 in a readable format.\n\nThe page must have these sections with titles and content in bullet points 📌 or short paragraphs:\n\nTitle of the day 🗓️\n\nSummary 📝\n\nMain points ⭐\n\nEmotions 💭💖😔🤯 (choose based on context)\n\nActions taken ✅\n\nFuture goals 🎯 (use ISO 8601 format for dates if relative days are mentioned 📅)\n\nReferences (books, people, events) 📚👥📅\n\nInternal arguments (pros and cons) ⚖️\n\nRelated topics 🔗\n\nEmotional tone analysis 🎭\n\nRules 📏:\n\nWrite only the text of the page, without code, without JSON, and without extra explanations.\n\nDo not omit details about events related to people and occurrences.\n\nDo not forget proper names of places, people.\n\nDo not overemphasize negative events but promote a positive and hopeful vision.\n\nIf content is missing for a section, write "No content found".\n\nKeep the narrative tone simple and clear, as if it were a personal diary.\n\nDo not dwell too much on psychological reflections and do not hypothesize emotions felt but focus on the facts and what was said.\n\nUse less than 2000 characters.';
     const target =
       lang === 'en'
-        ? (settings.summaryPromptEn || defaultEn)
-        : (settings.summaryPromptIt || defaultIt);
+        ? (settings.summaryPromptEn || defaultSummaryPromptEn)
+        : (settings.summaryPromptIt || defaultSummaryPromptIt);
     if (settings.summaryPrompt !== target) {
       const synced = { ...settings, summaryPrompt: target };
       setSettings(synced);
       try { localStorage.setItem('journal-settings', JSON.stringify(synced)); } catch {}
     }
   }, [lang, settings.summaryPromptEn, settings.summaryPromptIt]);
+
+  useEffect(() => {
+    if (!settingsInitialized || onboardingTriggeredRef.current) return;
+    let completed = false;
+    try {
+      completed = localStorage.getItem(onboardingStorageKey) === 'true';
+    } catch {}
+    if (!completed && (!settings.apiKey || settings.apiKey.trim().length === 0)) {
+      setIsOnboardingOpen(true);
+      onboardingTriggeredRef.current = true;
+    }
+  }, [settingsInitialized, settings.apiKey]);
 
   useEffect(() => {
     if (!selectedDate) return;
@@ -275,6 +286,18 @@ const DailyJournal = () => {
     }
   };
 
+  const handleOnboardingOpenChange = (open: boolean) => {
+    setIsOnboardingOpen(open);
+    if (!open) onboardingTriggeredRef.current = true;
+  };
+
+  const handleCompleteOnboarding = (newSettings: Settings) => {
+    handleSaveSettings(newSettings);
+    try { localStorage.setItem(onboardingStorageKey, 'true'); } catch {}
+    setIsOnboardingOpen(false);
+    showSuccess(t('onboarding.completed'));
+  };
+
   const daysWithEntries = Object.entries(entries)
     .filter(([_, arr]) => Array.isArray(arr) && arr.length > 0)
     .map(([dateStr]) => new Date(dateStr + 'T00:00:00'));
@@ -283,9 +306,16 @@ const DailyJournal = () => {
   const averageRating = totalEntries > 0
     ? (allEntries.reduce((sum, e) => sum + (e.rating || 0), 0) / totalEntries).toFixed(1)
     : '0.0';
+  const audioRecordings = allEntries.filter((entry) => !!entry.audioUrl).length;
 
   return (
     <>
+      <OnboardingDialog
+        open={isOnboardingOpen}
+        onOpenChange={handleOnboardingOpenChange}
+        settings={settings}
+        onComplete={handleCompleteOnboarding}
+      />
       <div className="min-h-screen">
         <div className="container mx-auto p-4 sm:p-6 lg:p-8">
           <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8 border-b pb-4">
@@ -297,30 +327,14 @@ const DailyJournal = () => {
                 {t('header.subtitle')}
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-center sm:justify-end">
-              <div className="hidden sm:flex items-center gap-2 bg-muted/50 px-3 py-1 rounded-lg">
-                <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">
-                  {t('header.statsCompact', { count: totalEntries, avg: averageRating })}
-                </span>
-              </div>
-              <ThemeToggle />
-              <LanguageToggle />
-              <Button asChild variant="outline" size="icon">
-                <Link to="/recent">
-                  <FileClock className="h-5 w-5" />
-                  <span className="sr-only">{t('header.recent')}</span>
-                </Link>
-              </Button>
-              <Button variant="outline" size="icon" onClick={() => setIsExportOpen(true)}>
-                <Download className="h-5 w-5" />
-                <span className="sr-only">{t('header.export')}</span>
-              </Button>
-              <Button variant="outline" size="icon" onClick={() => setIsSettingsOpen(true)}>
-                <SettingsIcon className="h-5 w-5" />
-                <span className="sr-only">{t('header.settings')}</span>
-              </Button>
-            </div>
+            <DockMenu
+              statsSummary={t('header.statsCompact', { count: totalEntries, avg: averageRating })}
+              totalEntries={totalEntries}
+              averageRating={averageRating}
+              audioRecordings={audioRecordings}
+              onOpenExport={() => setIsExportOpen(true)}
+              onOpenSettings={() => setIsSettingsOpen(true)}
+            />
           </header>
 
           <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -330,7 +344,7 @@ const DailyJournal = () => {
                   <Calendar
                     mode="single"
                     selected={selectedDate}
-                    onSelect={(date) => { setSelectedDate(date); setShowEntryHighlights(true); }}
+                    onSelect={setSelectedDate}
                     className="p-3"
                     modifiers={{ hasEntry: daysWithEntries }}
                     modifiersClassNames={{ hasEntry: 'has-entry' }}
