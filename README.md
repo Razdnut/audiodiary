@@ -1,6 +1,7 @@
 # Psychological Journal (Diario Psicologico)
 
-<img width="1920" height="1080" alt="logo orizzontale" src="https://github.com/user-attachments/assets/061d7cd3-f4f0-4ce5-986c-f994bb354fe1" />
+<img width="1920" height="1080" alt="logo-orizzontale" src="https://github.com/user-attachments/assets/7157e9f6-6e78-4a63-9727-0e988fa656fd" />
+
 
 A modern, privacy‑friendly journaling web app built with React, TypeScript, Vite, Tailwind, and shadcn/ui. Capture daily notes, record voice memos, transcribe and summarize them with OpenAI, export your data, and track your mood over time.
 
