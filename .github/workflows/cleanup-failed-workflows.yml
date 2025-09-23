@@ -1,0 +1,89 @@
+name: Cleanup Failed Workflow Runs
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only list the failed workflow runs without deleting"
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+permissions:
+  actions: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete failed workflow runs
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const dryRun = core.getInput('dry_run') === 'true';
+            const perPage = 100;
+            let page = 1;
+            let totalFailed = 0;
+            let deleted = 0;
+
+            core.info(`Dry run mode: ${dryRun}`);
+
+            while (true) {
+              const { data } = await github.rest.actions.listWorkflowRunsForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                per_page: perPage,
+                page,
+                status: 'completed',
+              });
+
+              if (!data.workflow_runs.length) {
+                break;
+              }
+
+              const failedRuns = data.workflow_runs.filter((run) => run.conclusion === 'failure');
+
+              if (failedRuns.length) {
+                core.info(`Found ${failedRuns.length} failed run(s) on page ${page}.`);
+              }
+
+              for (const run of failedRuns) {
+                totalFailed++;
+                core.info(`${dryRun ? 'Would delete' : 'Deleting'} run ${run.id} (${run.name} #${run.run_number}) from ${run.head_branch ?? 'unknown branch'}.`);
+
+                if (!dryRun) {
+                  try {
+                    await github.rest.actions.deleteWorkflowRun({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      run_id: run.id,
+                    });
+                    deleted++;
+                  } catch (error) {
+                    core.warning(`Failed to delete run ${run.id}: ${error.message}`);
+                  }
+                }
+              }
+
+              if (data.workflow_runs.length < perPage) {
+                break;
+              }
+
+              page++;
+            }
+
+            core.summary.addHeading('Failed Workflow Cleanup');
+            core.summary.addRaw(`Total failed runs found: **${totalFailed}**\n`);
+            if (dryRun) {
+              core.summary.addRaw('No runs were deleted (dry run mode enabled).\n');
+            } else {
+              core.summary.addRaw(`Failed runs deleted: **${deleted}**\n`);
+            }
+            await core.summary.write();
+
+            core.setOutput('failed_runs_found', totalFailed);
+            core.setOutput('failed_runs_deleted', deleted);
