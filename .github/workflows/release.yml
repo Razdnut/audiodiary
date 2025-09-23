@@ -70,7 +70,7 @@ jobs:
             echo "## 🚀 Novità della release ${VERSION}"
             echo
 
-            echo "Grazie per aver scelto AudioDiary! Ecco gli aggiornamenti più interessanti:"
+            echo "Thank you for choosing AudioDiary! Here are the most interesting updates:"
           } > "$NOTES_FILE"
 
           if [ -n "${PREVIOUS_VERSION}" ]; then
@@ -90,13 +90,13 @@ jobs:
           else
             {
               echo
-              echo "Nessun cambiamento rispetto alla release precedente, ma abbiamo ripulito un po' il codice ✨."
+              echo "No changes from the previous release, but we cleaned up the code a bit. ✨."
             } >> "$NOTES_FILE"
           fi
 
           {
             echo
-            echo "✨ Preparati a vivere un'esperienza audio ancora più coinvolgente!"
+            echo "✨ Get ready for an even more immersive audio experience!"
           } >> "$NOTES_FILE"
 
 
