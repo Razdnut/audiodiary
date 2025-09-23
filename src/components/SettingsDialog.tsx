@@ -44,6 +44,14 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, settin
   const { t, lang, setLang } = useI18n();
   const [currentSettings, setCurrentSettings] = useState<Settings>(settings);
 
+  const handleLanguageChange = (value: string) => {
+    if (value === 'en' || value === 'it') {
+      setLang(value);
+    } else {
+      console.warn('Unsupported language selected', value);
+    }
+  };
+
   useEffect(() => {
     const migrated: Settings = {
       apiKey: settings.apiKey || '',
@@ -119,7 +127,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, settin
             <Label htmlFor="language" className="text-right">
               {t('settings.lang')}
             </Label>
-            <Select value={lang} onValueChange={(v) => setLang(v as any)}>
+            <Select value={lang} onValueChange={handleLanguageChange}>
               <SelectTrigger className="col-span-3">
                 <SelectValue />
               </SelectTrigger>

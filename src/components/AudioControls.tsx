@@ -42,16 +42,17 @@ const AudioControls: React.FC<AudioControlsProps> = ({
   const audioChunksRef = useRef<Blob[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const isMediaRecorderSupported = typeof window !== 'undefined'
-    && typeof (window as any).MediaRecorder !== 'undefined'
-    && !!navigator.mediaDevices?.getUserMedia;
+  const isMediaRecorderSupported =
+    typeof window !== 'undefined'
+    && 'MediaRecorder' in window
+    && typeof navigator.mediaDevices?.getUserMedia === 'function';
 
   const startFallbackFileCapture = () => {
     try {
       fileInputRef.current?.click();
-    } catch (e) {
+    } catch (error) {
       showError(t('audio.micDenied'));
-      console.error('Fallback audio capture failed', e);
+      console.error('Fallback audio capture failed', error);
     }
   };
 
@@ -69,7 +70,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
       if (recorder && recorder.state === 'paused') {
         try {
           recorder.resume();
-        } catch (resumeError) {
+        } catch (resumeError: unknown) {
           console.warn('Failed to resume recorder before stopping', resumeError);
         }
       }
@@ -90,14 +91,18 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
         // Pick a supported mime type when possible
-        let options: MediaRecorderOptions | undefined = undefined;
-        const mrAny = (window as any).MediaRecorder as any;
-        if (mrAny && typeof mrAny.isTypeSupported === 'function') {
-          if (mrAny.isTypeSupported('audio/webm;codecs=opus')) {
+        let options: MediaRecorderOptions | undefined;
+        const mediaRecorderCtor =
+          typeof window !== 'undefined' && 'MediaRecorder' in window
+            ? (window.MediaRecorder as typeof MediaRecorder)
+            : undefined;
+
+        if (mediaRecorderCtor && typeof mediaRecorderCtor.isTypeSupported === 'function') {
+          if (mediaRecorderCtor.isTypeSupported('audio/webm;codecs=opus')) {
             options = { mimeType: 'audio/webm;codecs=opus' };
-          } else if (mrAny.isTypeSupported('audio/webm')) {
+          } else if (mediaRecorderCtor.isTypeSupported('audio/webm')) {
             options = { mimeType: 'audio/webm' };
-          } else if (mrAny.isTypeSupported('audio/mp4')) {
+          } else if (mediaRecorderCtor.isTypeSupported('audio/mp4')) {
             options = { mimeType: 'audio/mp4' };
           }
         }
@@ -111,7 +116,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         setCanPause(supportsPause);
         setIsPaused(false);
 
-        mediaRecorderRef.current.ondataavailable = (event) => {
+        mediaRecorderRef.current.ondataavailable = (event: BlobEvent) => {
           if (event.data && event.data.size > 0) {
             audioChunksRef.current.push(event.data);
           }
@@ -121,7 +126,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
           const blobType = options?.mimeType || 'audio/webm';
           const audioBlob = new Blob(audioChunksRef.current, { type: blobType });
           const fileExt = blobType.includes('mp4') ? 'm4a' : 'webm';
-          const newAudioFile = new File([audioBlob], `recording.${fileExt}` , { type: blobType });
+          const newAudioFile = new File([audioBlob], `recording.${fileExt}`, { type: blobType });
           const audioUrl = URL.createObjectURL(audioBlob);
           onUpdate({ audioUrl, audioFile: newAudioFile, transcript: undefined, summary: undefined });
           stream.getTracks().forEach(track => track.stop()); // Stop microphone access
@@ -142,11 +147,15 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         mediaRecorderRef.current.start();
         setIsRecording(true);
         onUpdate({ audioUrl: undefined, transcript: undefined, summary: undefined, audioFile: undefined });
-      } catch (err: any) {
+      } catch (err: unknown) {
         // If permission is denied or recording not supported, try fallback capture on Android
-        const name = err?.name || '';
+        const name = err instanceof Error ? err.name : '';
         console.warn('getUserMedia/MediaRecorder error:', name, err);
-        const shouldFallback = Capacitor.isNativePlatform() || name === 'NotAllowedError' || name === 'NotFoundError' || name === 'NotSupportedError';
+        const shouldFallback =
+          Capacitor.isNativePlatform()
+          || name === 'NotAllowedError'
+          || name === 'NotFoundError'
+          || name === 'NotSupportedError';
         if (shouldFallback) {
           setIsPaused(false);
           setCanPause(false);
@@ -184,7 +193,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
     try {
       const url = URL.createObjectURL(file);
       onUpdate({ audioUrl: url, audioFile: file, transcript: undefined, summary: undefined });
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Failed to load selected audio file', err);
       showError(t('audio.micDenied'));
     } finally {
@@ -211,8 +220,9 @@ const AudioControls: React.FC<AudioControlsProps> = ({
       const transcriptText = await transcribeAudio(settings, audioFile, lang);
       onUpdate({ transcript: transcriptText });
       showSuccess(t('audio.transcribed'));
-    } catch (error: any) {
-      showError(error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : t('audio.micDenied');
+      showError(message);
     } finally {
       setIsLoading(null);
     }
@@ -223,7 +233,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
       showError(t('audio.noTranscript'));
       return;
     }
-     if (!settings.apiKey) {
+    if (!settings.apiKey) {
       showError(t('audio.noApiKey'));
       return;
     }
@@ -233,8 +243,9 @@ const AudioControls: React.FC<AudioControlsProps> = ({
       const summaryText = await summarizeText(settings, transcript, lang);
       onUpdate({ summary: summaryText });
       showSuccess(t('audio.summarized'));
-    } catch (error: any) {
-      showError(error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : t('audio.micDenied');
+      showError(message);
     } finally {
       setIsLoading(null);
     }
@@ -242,7 +253,11 @@ const AudioControls: React.FC<AudioControlsProps> = ({
 
   const handleDeleteAudio = () => {
     if (audioUrl && audioUrl.startsWith('blob:')) {
-      try { URL.revokeObjectURL(audioUrl); } catch {}
+      try {
+        URL.revokeObjectURL(audioUrl);
+      } catch (error) {
+        console.warn('Failed to revoke audio URL', error);
+      }
     }
     setIsPaused(false);
     setCanPause(false);
