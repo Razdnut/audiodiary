@@ -3,8 +3,8 @@ name: detekt
 on:
   push:
     branches: [ main ]
-
- jobs:
+    
+jobs:
    detekt:
      runs-on: ubuntu-latest
 
