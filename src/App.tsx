@@ -1,7 +1,7 @@
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import SilkBackground from "@/components/SilkBackground";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
@@ -10,6 +10,8 @@ import Recent from "./pages/Recent";
 import { ThemeProvider } from "./components/theme-provider";
 import { I18nProvider } from "./i18n/i18n";
 
+const SilkBackground = lazy(() => import("@/components/SilkBackground"));
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -17,7 +19,9 @@ const App = () => (
     <I18nProvider>
       <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
         <TooltipProvider>
-          <SilkBackground />
+          <Suspense fallback={null}>
+            <SilkBackground />
+          </Suspense>
           <div
             className="relative z-10 min-h-screen"
             style={{
