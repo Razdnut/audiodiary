@@ -162,8 +162,8 @@ jobs:
             exit 1
           fi
           cat <<EOF > android/local.properties
-sdk.dir=${SDK_PATH}
-EOF
+          sdk.dir=${SDK_PATH}
+          EOF
 
 
       - name: Ensure Android platform is added
