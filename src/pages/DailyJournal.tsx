@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,15 +6,14 @@ import Rating from '@/components/ui/rating';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { it, enUS } from 'date-fns/locale';
-import { Settings as SettingsIcon, Download, BarChart3, FileClock } from 'lucide-react';
 import AudioControls from '@/components/AudioControls';
 import SettingsDialog, { Settings } from '@/components/SettingsDialog';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
-import { ThemeToggle } from '@/components/theme-toggle';
 import ExportDialog from '@/components/ExportDialog';
 import { showSuccess, showError } from '@/utils/toast';
 import { JournalEntryForExport } from '@/utils/export-utils';
+import DockMenu from '@/components/DockMenu';
 import {
   Select,
   SelectContent,
@@ -283,6 +281,7 @@ const DailyJournal = () => {
   const averageRating = totalEntries > 0
     ? (allEntries.reduce((sum, e) => sum + (e.rating || 0), 0) / totalEntries).toFixed(1)
     : '0.0';
+  const audioRecordings = allEntries.filter((entry) => !!entry.audioUrl).length;
 
   return (
     <>
@@ -297,30 +296,14 @@ const DailyJournal = () => {
                 {t('header.subtitle')}
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-center sm:justify-end">
-              <div className="hidden sm:flex items-center gap-2 bg-muted/50 px-3 py-1 rounded-lg">
-                <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">
-                  {t('header.statsCompact', { count: totalEntries, avg: averageRating })}
-                </span>
-              </div>
-              <ThemeToggle />
-              <LanguageToggle />
-              <Button asChild variant="outline" size="icon">
-                <Link to="/recent">
-                  <FileClock className="h-5 w-5" />
-                  <span className="sr-only">{t('header.recent')}</span>
-                </Link>
-              </Button>
-              <Button variant="outline" size="icon" onClick={() => setIsExportOpen(true)}>
-                <Download className="h-5 w-5" />
-                <span className="sr-only">{t('header.export')}</span>
-              </Button>
-              <Button variant="outline" size="icon" onClick={() => setIsSettingsOpen(true)}>
-                <SettingsIcon className="h-5 w-5" />
-                <span className="sr-only">{t('header.settings')}</span>
-              </Button>
-            </div>
+            <DockMenu
+              statsSummary={t('header.statsCompact', { count: totalEntries, avg: averageRating })}
+              totalEntries={totalEntries}
+              averageRating={averageRating}
+              audioRecordings={audioRecordings}
+              onOpenExport={() => setIsExportOpen(true)}
+              onOpenSettings={() => setIsSettingsOpen(true)}
+            />
           </header>
 
           <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
