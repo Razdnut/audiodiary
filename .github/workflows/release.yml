@@ -175,7 +175,7 @@ jobs:
           tag_name: ${{ env.VERSION }}
           name: Audiodiary ${{ env.VERSION }}
           body_path: release-notes.md
-          files: dist/audiodiary-${VERSION}.apk
+          files: dist/audiodiary-${{ env.VERSION }}.apk
           target_commitish: ${{ github.sha }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
