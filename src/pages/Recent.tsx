@@ -55,8 +55,8 @@ const RecentPage = () => {
       return;
     }
 
-    if (selectedIndex < 0 || selectedIndex >= list.length) {
-      setSelectedIndex(0);
+    if (selectedIndex >= list.length) {
+      setSelectedIndex(-1);
     }
   }, [list.length, selectedIndex]);
 
@@ -82,7 +82,9 @@ const RecentPage = () => {
     : false;
 
   const hasTranscript = selectedEntry
-    ? selectedEntry.transcript && selectedEntry.transcript.trim().length > 0 && selectedEntry.transcript.trim() !== displayText.trim()
+    ? selectedEntry.transcript &&
+      selectedEntry.transcript.trim().length > 0 &&
+      selectedEntry.transcript.trim() !== displayText.trim()
     : false;
 
   return (
@@ -155,7 +157,7 @@ const RecentPage = () => {
                       )}
                     </>
                   ) : (
-                    <div className="text-sm text-muted-foreground">{t('recent.empty')}</div>
+                    <div className="text-sm text-muted-foreground">{t('recent.selectPrompt')}</div>
                   )}
                 </div>
               </div>
