@@ -606,6 +606,7 @@ const DailyJournal = () => {
                 settings={settings}
                 audioFile={currentAudioFile}
                 onCopySummaryToNote={() => { const s = (currentSummary || '').trim(); if (!s) return; setCurrentContent(s); setContentAutoFilled(true); }}
+                onCopyTranscriptToNote={() => { const tr = (currentTranscript || '').trim(); if (!tr) return; setCurrentContent(tr); setContentAutoFilled(true); }}
               />
 
               <div className="flex gap-4">

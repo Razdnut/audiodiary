@@ -1,6 +1,6 @@
 {
   "appId": "com.audiodiary.app",
-  "appName": "Psychological Journal",
+  "appName": "Audio Diary",
   "webDir": "dist",
   "bundledWebRuntime": false,
   "server": {

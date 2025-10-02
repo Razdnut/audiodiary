@@ -1,4 +1,4 @@
-# Psychological Journal (Diario Psicologico)
+# Audio Diary (Audio Diario)
 
 <img width="1920" height="1080" alt="logo-orizzontale" src="https://github.com/user-attachments/assets/7157e9f6-6e78-4a63-9727-0e988fa656fd" />
 
@@ -20,10 +20,12 @@ Key highlights:
 
 - Audio notes and AI
   - Record audio in the browser (Web MediaRecorder)
+  - Upload existing audio files from your device
   - Transcribe with Whisper (`whisper-1`) using your OpenAI key
   - Summarize transcripts with GPT models (configurable)
   - Editable “System Prompt” to customize summaries’ tone and content
   - Delete a note’s audio (and all audios at once from Settings)
+  - Copy either the generated summary or full transcript into your note with one click
 
 - Export
   - Export all notes to JSON
@@ -112,6 +114,9 @@ Build an Android APK with Capacitor.
 
 Local (Android Studio):
 - Prereqs: Android Studio (SDK + build tools), Java 17.
+- Required permissions (already declared in `android/app/src/main/AndroidManifest.xml`):
+  - `RECORD_AUDIO` and `MODIFY_AUDIO_SETTINGS`
+  - `READ_MEDIA_AUDIO` (Android 13+) and legacy storage permissions for older devices
 - Steps:
   1. Install deps: `npm install`
   2. Build web: `npm run build`
