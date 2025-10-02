@@ -19,8 +19,8 @@ export const exportToJson = (entries: JournalEntryForExport[]): string => {
 export const exportToIcs = async (entries: JournalEntryForExport[], lang: Lang = 'it'): Promise<string> => {
   const t = (key: 'calendarName' | 'rating' | 'none' | 'content' | 'transcript' | 'summary') => {
     const map = {
-      it: { calendarName: 'Diario Psicologico', rating: 'Valutazione', none: 'Nessuna', content: 'Contenuto', transcript: 'Trascrizione', summary: 'Sintesi' },
-      en: { calendarName: 'Psychological Journal', rating: 'Rating', none: 'None', content: 'Content', transcript: 'Transcript', summary: 'Summary' },
+      it: { calendarName: 'Audio Diario', rating: 'Valutazione', none: 'Nessuna', content: 'Contenuto', transcript: 'Trascrizione', summary: 'Sintesi' },
+      en: { calendarName: 'Audio Diary', rating: 'Rating', none: 'None', content: 'Content', transcript: 'Transcript', summary: 'Summary' },
     } as const;
     return map[lang][key];
   };

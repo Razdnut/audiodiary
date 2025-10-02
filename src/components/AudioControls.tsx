@@ -3,7 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Mic, Square, FileText, Sparkles, Loader2, Trash2, Pause, Play } from 'lucide-react';
+import { Mic, Square, FileText, Sparkles, Loader2, Trash2, Pause, Play, Upload } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Settings } from './SettingsDialog';
 import { transcribeAudio, summarizeText } from '@/services/openai';
@@ -21,6 +21,7 @@ interface AudioControlsProps {
   settings: Settings;
   audioFile: File | undefined;
   onCopySummaryToNote?: () => void;
+  onCopyTranscriptToNote?: () => void;
 }
 
 const AudioControls: React.FC<AudioControlsProps> = ({
@@ -32,6 +33,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
   settings,
   audioFile,
   onCopySummaryToNote,
+  onCopyTranscriptToNote,
 }) => {
   const { t, lang } = useI18n();
   const [isRecording, setIsRecording] = useState(false);
@@ -41,6 +43,24 @@ const AudioControls: React.FC<AudioControlsProps> = ({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const manualFileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const processSelectedFile = (file?: File) => {
+    if (!file) return;
+    try {
+      const url = URL.createObjectURL(file);
+      onUpdate({ audioUrl: url, audioFile: file, transcript: undefined, summary: undefined });
+    } catch (err: unknown) {
+      console.error('Failed to load selected audio file', err);
+      showError(t('audio.micDenied'));
+    } finally {
+      setIsRecording(false);
+      setIsPaused(false);
+      setCanPause(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      if (manualFileInputRef.current) manualFileInputRef.current.value = '';
+    }
+  };
 
   const isMediaRecorderSupported =
     typeof window !== 'undefined'
@@ -180,20 +200,18 @@ const AudioControls: React.FC<AudioControlsProps> = ({
   };
 
   const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    processSelectedFile(e.target.files?.[0]);
+  };
+
+  const handleManualFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    processSelectedFile(e.target.files?.[0]);
+  };
+
+  const handleUploadClick = () => {
     try {
-      const url = URL.createObjectURL(file);
-      onUpdate({ audioUrl: url, audioFile: file, transcript: undefined, summary: undefined });
-    } catch (err: unknown) {
-      console.error('Failed to load selected audio file', err);
-      showError(t('audio.micDenied'));
-    } finally {
-      setIsRecording(false);
-      setIsPaused(false);
-      setCanPause(false);
-      // reset input so selecting the same file again triggers change
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      manualFileInputRef.current?.click();
+    } catch (error) {
+      console.error('Manual audio upload failed', error);
     }
   };
 
@@ -272,7 +290,14 @@ const AudioControls: React.FC<AudioControlsProps> = ({
           className="hidden"
           onChange={handleFileSelected}
         />
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+        <input
+          ref={manualFileInputRef}
+          type="file"
+          accept="audio/*"
+          className="hidden"
+          onChange={handleManualFileSelected}
+        />
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
           <Button onClick={handleToggleRecording} disabled={disabled || isLoading !== null} variant={isRecording ? "destructive" : "outline"}>
             {isRecording ? (
               <><Square className="mr-2 h-4 w-4" /> {t('audio.stop')}</>
@@ -290,6 +315,10 @@ const AudioControls: React.FC<AudioControlsProps> = ({
             ) : (
               <><Pause className="mr-2 h-4 w-4" /> {t('audio.pause')}</>
             )}
+          </Button>
+          <Button onClick={handleUploadClick} disabled={disabled || isLoading !== null} variant="secondary">
+            <Upload className="mr-2 h-4 w-4" />
+            {t('audio.upload')}
           </Button>
           <Button onClick={handleTranscribe} disabled={!audioFile || isLoading !== null || disabled}>
             {isLoading === 'transcribe' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
@@ -316,22 +345,13 @@ const AudioControls: React.FC<AudioControlsProps> = ({
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
-            <div className="mt-2">
-              <Button
-                type="button"
-                onClick={() => onCopySummaryToNote && onCopySummaryToNote()}
-                disabled={disabled || !summary}
-              >
-                {t('daily.copySummaryToNote')}
-              </Button>
-            </div>
           </div>
         )}
 
         {transcript && (
           <div>
             <Label className="text-sm font-medium mb-1">{t('audio.transcriptLabel')}</Label>
-            <Textarea value={transcript} readOnly className="bg-background mt-1" rows={4} />
+            <Textarea value={transcript} readOnly className="bg-background mt-1 min-h-[240px] text-base resize-y" rows={10} />
           </div>
         )}
 
@@ -339,6 +359,29 @@ const AudioControls: React.FC<AudioControlsProps> = ({
           <div>
             <Label className="text-sm font-medium mb-1">{t('audio.summaryLabel')}</Label>
             <Textarea value={summary} readOnly className="bg-background mt-1" rows={3} />
+          </div>
+        )}
+
+        {(transcript || summary) && (
+          <div className="flex flex-wrap justify-end gap-2">
+            {transcript && (
+              <Button
+                type="button"
+                onClick={() => onCopyTranscriptToNote && onCopyTranscriptToNote()}
+                disabled={disabled}
+              >
+                {t('daily.copyTranscriptToNote')}
+              </Button>
+            )}
+            {summary && (
+              <Button
+                type="button"
+                onClick={() => onCopySummaryToNote && onCopySummaryToNote()}
+                disabled={disabled}
+              >
+                {t('daily.copySummaryToNote')}
+              </Button>
+            )}
           </div>
         )}
       </CardContent>

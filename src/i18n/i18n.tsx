@@ -9,7 +9,7 @@ type Translations = Record<Lang, Dict>;
 
 const translations: Translations = {
   it: {
-    'app.title': 'Diario Psicologico',
+    'app.title': 'Audio Diario',
     'header.subtitle': 'Le tue riflessioni quotidiane, in un unico posto.',
     'header.export': 'Esporta',
     'header.settings': 'Impostazioni',
@@ -37,7 +37,8 @@ const translations: Translations = {
     'daily.saveNote': 'Salva Nota',
     'daily.saveEntry': 'Salva Voce',
     'daily.clear': 'Pulisci',
-    'daily.copySummaryToNote': 'Salva in Nota',
+    'daily.copySummaryToNote': 'Salva sintesi in Nota',
+    'daily.copyTranscriptToNote': 'Salva trascrizione in Nota',
 
     'stats.title': 'Statistiche',
     'stats.totalEntries': 'Voci totali:',
@@ -55,6 +56,7 @@ const translations: Translations = {
     'audio.resume': 'Riprendi',
     'audio.transcribe': 'Trascrivi',
     'audio.summarize': 'Sintetizza',
+    'audio.upload': 'Carica audio',
     'audio.recordingLabel': 'Registrazione:',
     'audio.transcriptLabel': 'Trascrizione:',
     'audio.summaryLabel': 'Sintesi Automatica:',
@@ -88,7 +90,7 @@ const translations: Translations = {
     'export.cancel': 'Annulla',
     'export.includeSensitive': 'Includi contenuti/testi sensibili in export',
 
-    'ics.calendarName': 'Diario Psicologico',
+    'ics.calendarName': 'Audio Diario',
     'ics.rating': 'Valutazione',
     'ics.none': 'Nessuna',
     'ics.content': 'Contenuto',
@@ -105,7 +107,7 @@ const translations: Translations = {
     'onboarding.next': 'Avanti',
     'onboarding.back': 'Indietro',
     'onboarding.finish': 'Conferma e salva',
-    'onboarding.introTitle': 'Benvenuto in Diario Psicologico',
+    'onboarding.introTitle': 'Benvenuto in Audio Diario',
     "onboarding.introDescription": "Per sfruttare appieno l'app abbiamo bisogno di alcune informazioni.",
     'onboarding.introPoint1': 'Inserisci la tua chiave API di OpenAI: rimane salvata solo nel tuo browser.',
     'onboarding.introPoint2': 'Personalizza il prompt di sistema che guiderà le sintesi generate da OpenAI.',
@@ -121,7 +123,7 @@ const translations: Translations = {
     'onboarding.completed': 'Impostazioni iniziali salvate! Puoi aggiornarle dalle Impostazioni.',
   },
   en: {
-    'app.title': 'Psychological Journal',
+    'app.title': 'Audio Diary',
     'header.subtitle': 'Your daily reflections, in one place.',
     'header.export': 'Export',
     'header.settings': 'Settings',
@@ -149,7 +151,8 @@ const translations: Translations = {
     'daily.saveNote': 'Save Note',
     'daily.saveEntry': 'Save Entry',
     'daily.clear': 'Clear',
-    'daily.copySummaryToNote': 'Save to Note',
+    'daily.copySummaryToNote': 'Save summary to Note',
+    'daily.copyTranscriptToNote': 'Save transcript to Note',
 
     'stats.title': 'Statistics',
     'stats.totalEntries': 'Total entries:',
@@ -167,6 +170,7 @@ const translations: Translations = {
     'audio.resume': 'Resume',
     'audio.transcribe': 'Transcribe',
     'audio.summarize': 'Summarize',
+    'audio.upload': 'Upload audio',
     'audio.recordingLabel': 'Recording:',
     'audio.transcriptLabel': 'Transcript:',
     'audio.summaryLabel': 'Automatic Summary:',
@@ -200,7 +204,7 @@ const translations: Translations = {
     'export.cancel': 'Cancel',
     'export.includeSensitive': 'Include sensitive content/texts in export',
 
-    'ics.calendarName': 'Psychological Journal',
+    'ics.calendarName': 'Audio Diary',
     'ics.rating': 'Rating',
     'ics.none': 'None',
     'ics.content': 'Content',
@@ -217,7 +221,7 @@ const translations: Translations = {
     'onboarding.next': 'Next',
     'onboarding.back': 'Back',
     'onboarding.finish': 'Save and continue',
-    'onboarding.introTitle': 'Welcome to Psychological Journal',
+    'onboarding.introTitle': 'Welcome to Audio Diary',
     'onboarding.introDescription': 'We just need a couple of details before you start recording your reflections.',
     'onboarding.introPoint1': 'Add your OpenAI API key — it will remain stored locally in your browser.',
     'onboarding.introPoint2': 'Review or customise the system prompt that drives the automatic summaries.',
