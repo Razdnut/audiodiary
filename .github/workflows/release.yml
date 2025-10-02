@@ -30,13 +30,13 @@ jobs:
           git fetch --tags --force
           LAST_TAG=$(git tag -l 'v1.0.*' --sort=v:refname | tail -n1)
           if [ -z "$LAST_TAG" ]; then
-            NEXT_VERSION="1.0.0"
+            NEXT_VERSION="1.1.0"
             PREVIOUS_TAG=""
           else
             PREVIOUS_TAG="$LAST_TAG"
             PATCH="${LAST_TAG##*.}"
             NEXT_PATCH=$((PATCH + 1))
-            NEXT_VERSION="1.0.${NEXT_PATCH}"
+            NEXT_VERSION="1.1.${NEXT_PATCH}"
           fi
 
 
