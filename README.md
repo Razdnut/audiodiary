@@ -5,6 +5,203 @@
 
 A modern, privacy‑friendly journaling web app built with React, TypeScript, Vite, Tailwind, and shadcn/ui. Capture daily notes, record voice memos, transcribe and summarize them with OpenAI, export your data, and track your mood over time.
 
+## Audio Diary
+
+<img width="1920" height="1080" alt="logo-horizontal" src="https://github.com/user-attachments/assets/7157e9f6-6e78-4a63-9727-0e988fa656fd" />
+
+
+A modern, privacy-friendly journaling web app built with React, TypeScript, Vite, Tailwind, and shadcn/ui. Capture daily notes, record voice memos, transcribe and summarize them with OpenAI, export your data, and track your mood over time.
+
+## Goal
+
+My goal is to create an android app where I can safely use the openai whisper template to transcribe voice notes or audio files and synthesize them set a prompt.
+
+Key highlights:
+- Local-first: journal data is stored in your browser (localStorage).
+Optional AI: Use your OpenAI API key client-side for transcription and summaries.
+Mobile-friendly: tuned header layout and safe-area padding for Android/iOS.
+- i18n: English and Italian with language switching in the UI.
+
+## Features
+
+Daily Notes
+Multiple notes per day (add, select, delete a specific note)
+Rich text area for thoughts and reflections
+- 1-5 star rating for the day (with one-click reset)
+
+Audio Notes and AI
+Audio Record in the Browser (Web MediaRecorder)
+- Upload existing audio files from your device
+Transcribe with Whisper ('whisper-1') using your OpenAI key
+Summarize transcripts with GPT models (configurable)
+Editable "System Prompt" to customized summaries' tone and content
+Delete a note's audio (and all audios at once from Settings)
+Copy either the generated summary or full transcript into your note with one click
+
+Export - Export
+Export all notes to JSON
+Export to ICS calendar file (one event per note) with localized titles
+
+Calendar and Statistics
+Calendar shows only today highlighted on first load; after you pick a date, days with entries become highlighted
+Stats moved to the bottom of the page: total entries, average rating, number of recordings
+- Reset all ratings to zero with one click (does not delete content)
+
+Internationalization (18n)
+English and Italian translations
+Dynamic date localization (date-fns locales)
+Quick language switch in the header and in Settings
+
+Mobile Polish
+Safe-area insets (top/bottom) for devices with cutouts
+Responsive, centered header - controls fit on small screens
+
+## Screenshots
+
+Add your screenshots here (optional):
+Calendar and daily note view
+
+
+<img width="384" height="508" alt="image" src="https://github.com/user-attachments/assets/d226a21a-a12b-422a-af5b-b4d3e12c668d" />
+
+Audio controls and AI actions
+
+<img width="377" height="844" alt="image" src="https://github.com/user-attachments/assets/4cabb175-eea4-4bd3-95b5-970b0af08578" />
+
+Export Dialogue and Settings
+
+<img width="392" height="344" alt="image" src="https://github.com/user-attachments/assets/a0d8436d-9c1b-4895-a4cb-54114e7a193b" />
+
+
+## Getting Started
+
+Prerequisites:
+Node.js 18+ and NPM
+
+Install and run:
+
+" 'bash
+npm install
+NPM Run Dev
+"'
+
+Build:
+
+" 'bash
+NPM Run Build
+NPM Run Preview
+"'
+
+## Docker
+
+Two options are provided: run the published image from GitHub Container Registry (GHCR) or build locally.
+
+Pull and run from GHCR (version 1.0.7):)
+
+" 'bash
+docker run --rm -p 8080:80 ghcr.io/razdnut/audiodiary:1.0.7
+# Then open http://localhost:8080
+"'
+
+- Build and run locally:
+
+" 'bash
+Docker build -T audiodiary:local.
+Docker Run --RM -P 8080:80 Audiodiary:Local
+"'
+
+Docker Compose
+
+Use the included compose file to build and run:
+
+" 'bash
+Docker compose up --build
+Open http://localhost:8080
+"'
+
+Android (Capacitor)
+
+Build an Android APK with Capacitor.
+
+Local (Android Studio):
+Prereqs: Android Studio (SDK + build tools), Java 17.
+Required permissions (already declared in 'android/app/src/main/AndroidManifest.xml'):
+- 'RECORD_AUDIO' and 'MODIFY_AUDIO_SETTINGS'
+- 'READ_MEDIA_AUDIO' (Android 13+) and legacy storage permissions for older devices
+Steps:
+1. Install deps: 'npm install'
+2. Build web: 'npm run build'
+Android Add/sync: 'npm run cap:add:android' (first time), then 'npm run cap:sync'
+4. Open in Android Studio: 'npm run android:open'
+5. Build a Debug APK: from Android Studio, or via Gradle: 'cd android && ./gradlew assembleDebug'
+6. APK path: 'android/app/build/outputs/apk/debug/app-debug.apk'
+
+CI (GitHub Actions):
+This report includes a workflow that builds a Debug APK on tag push ('v*') or manual dispatch:
+- '.github/workflows/android-apk.yml'
+The APK is uploaded as an artifact and attached to the GitHub Release for the tag.
+
+OpenAI Setup (Optional)
+
+All AI functionality runs in the browser. Open Settings and paste your OpenAI API key. You can choose:
+Transcription model: 'whisper-1'
+Summary model: e.g., 'gpt-4o-mini', 'gpt-4o', 'gpt-3.5-turbo'
+System Prompt: customize how summaries are generated
+
+Important: This app uses 'dangerouslyAllowBrowser: true' in the OpenAI client. Do not use a key production without a trusted backend. Consider proxying requests in production.
+
+Data Storage and Privacy
+
+Notes, ratings, transcripts, summaries, and simple flags are stored in 'localStorage'.
+Audio is recorded as a Blob and referenced via a temporary Object URL (blob:). As such, audio blobs are not reliably persisted across page reloads or different sessions. Use Export to save your content or a proper storage backend if you need permanent audio storage.
+You can delete audio per note or delete all audio (and related transcripts/summaries) from Settings.
+
+## Internationalization
+
+The app supports Italian and English.
+Switch language from the header selector or within Settings.
+Date formatting adapts automatically via 'date-fns' locales.
+
+## Exporting
+
+JSON: Exports all notes as an array (date, content, rating, transcript, summary, audioURL).
+- ICS: Creates calendar events (18:00-18:30 by default) for each note.
+Titles and calendar name are localized.
+
+Keyboard and UX Tips
+
+Save Entry: saves the currently selected note for the selected day.
+New note: creates a new blank note for the day and switches to it.
+Delete note: removes just the selected note.
+Clear: clears the current form values (does not delete saved entries until you save).
+
+Tech Stack
+
+React 18 + TypeScript + Screw
+Tailwind CSS + shadcn/ui + Radix UI
+Date-FNS for date formatting and locales
+ICS for Calendar Export
+
+Project Structure
+
+- 'src/pages/DailyJournal.tsx' - main journal UI and logic (calendar, notes, stats)
+- 'src/components/AudioControls.tsx' - recording, transcribing, summarizing, and audio UI
+- 'src/components/SettingsDialog.tsx' - API key, models, system prompt, language, delete all audio
+- 'src/components/ExportDialog.tsx' - export to JSON/ICS
+- 'src/i18n/i18n.tsx' - i18n provider, translations, and local dates
+- 'src/services/openai.ts' - OpenAI calls (transcription and summaries)
+- 'src/utils/export-utils.ts' - JSON/ICS export helpers
+
+Roadmap Ideas
+
+Persistent audio storage (IndexedDB or backend upload)
+Per-note tags and search
+Charts and insights for mood tracking over time
+
+## License
+
+MIT - see [LICENSE] (./LICENSE) for details. 
+
 Key highlights:
 - Local‑first: journal data is stored in your browser (localStorage).
 - Optional AI: uses your OpenAI API key client‑side for transcription and summaries.
