@@ -11,6 +11,12 @@ Key highlights:
 - Mobile‑friendly: tuned header layout and safe‑area padding for Android/iOS.
 - i18n: English and Italian with language switching in the UI.
 
+## Goals
+
+The goal is to create an Android app that lets you upload or record an audio file and obtain a transcription using your OpenAI API key and the Whisper model. Afterwards you can optionally generate a summary driven by a customizable prompt when desired.
+
+Manual audio file uploads are now supported alongside in-app recording.
+
 ## Features
 
 - Daily notes
